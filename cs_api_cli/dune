@@ -1,0 +1,3 @@
+(executable
+ (name cs_api_cli)
+ (libraries cmdliner cs_api_io cs_api_core))

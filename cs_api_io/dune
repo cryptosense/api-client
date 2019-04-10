@@ -1,0 +1,3 @@
+(library
+ (name cs_api_io)
+ (libraries cohttp cohttp-lwt cohttp-lwt-unix yojson str cs_api_core api))

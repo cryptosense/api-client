@@ -1,3 +1,0 @@
-(executable
- (name api_client)
- (libraries cmdliner api_parser api_caller))
