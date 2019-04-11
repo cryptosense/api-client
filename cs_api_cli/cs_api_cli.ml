@@ -1,6 +1,8 @@
 let main file_path trace_name project_id api_endpoint api_key =
   let open Lwt_result.Infix in
   let api = Api.make ~api_endpoint ~api_key in
+  let file_size = Int64.to_int(Lwt_main.run (Lwt_io.file_length file_path)) in
+  let file = {Api.Request.path = file_path; size = file_size} in
   let s3_signed_post_request = Cs_api_core.build_s3_signed_post_request ~api in
   s3_signed_post_request
   |> Cs_api_io.send_request
@@ -10,14 +12,12 @@ let main file_path trace_name project_id api_endpoint api_key =
       | None ->
         Lwt.return (Error "Failed to parse S3 signature request response")
       | Some (s3_url, s3_signature) ->
-        Lwt.return (Ok (Cs_api_core.build_file_upload_request ~s3_url ~s3_signature ~file_path)) )
+        Lwt.return (Ok (Cs_api_core.build_file_upload_request ~s3_url ~s3_signature ~file)) )
   >>= Cs_api_io.send_request
   >>= Cs_api_io.get_response
   >>= (fun (body) ->
       let s3_key = Cs_api_core.parse_s3_response ~body in
-      let file_stats = Lwt_main.run (Lwt_unix.stat file_path) in
-      let file_size = file_stats.st_size in
-      let import_request = Cs_api_core.build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file_size in
+      let import_request = Cs_api_core.build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file in
       Lwt.return (Ok import_request)
     )
   >>= Cs_api_io.send_request

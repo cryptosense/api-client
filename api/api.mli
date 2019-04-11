@@ -10,16 +10,21 @@ module Request : sig
     | Get
     | Post
 
+  type file =
+    { path : string
+    ; size : int
+    }
+
   type t =
     { url : string
     ; form : (string * string) list
     ; _method : _method
     ; header : (string * string) list
-    ; file : string option }
+    ; file : file option }
 end
 
 module S3Signature : sig
 
- type t = (string * string) list
+  type t = (string * string) list
 
 end

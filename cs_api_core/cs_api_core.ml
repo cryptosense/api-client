@@ -43,13 +43,14 @@ let build_s3_signed_post_request ~api =
   ; header = [("API_KEY", key)]
   ; file = None }
 
-let build_file_upload_request ~s3_url ~s3_signature ~file_path =
-  { Api.Request.url = s3_url; form = s3_signature; _method = Post; header = []; file = Some file_path}
+let build_file_upload_request ~s3_url ~s3_signature ~file =
+  { Api.Request.url = s3_url; form = s3_signature; _method = Post; header = []; file = Some file}
 
-let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file_size =
+let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file =
   let {Api.endpoint; key} = api in
+  let {Api.Request.size; _} = file in
   { Api.Request.url = endpoint ^ "/projects/" ^ project_id ^ "/traces"
-  ; form = [("key", s3_key); ("name", trace_name); ("size", string_of_int file_size)]
+  ; form = [("key", s3_key); ("name", trace_name); ("size", string_of_int size)]
   ; _method = Post
   ; header = [("API_KEY", key)]
   ; file = None }
