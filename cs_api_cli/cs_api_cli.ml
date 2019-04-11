@@ -44,19 +44,27 @@ let info =
 
 let trace_file =
   let doc = "Path to the file containing the trace" in
-  Cmdliner.Arg.(required & pos 0 (some string) None & info [] ~docv:"TRACEFILE" ~doc)
+  Cmdliner.Arg.(
+    required 
+    & opt (some non_dir_file) None 
+    & info ["f"; "trace-file"] ~docv:"TRACEFILE" ~doc
+  )
 
 let trace_name =
   let doc = "Name of the trace" in
-  Cmdliner.Arg.(required & pos 1 (some string) None & info [] ~docv:"TRACENAME" ~doc)
+  Cmdliner.Arg.(required & opt (some string) None & info ["n"; "trace-name"] ~docv:"TRACENAME" ~doc)
 
 let project_id =
   let doc = "ID of the project to which the trace should be added" in
-  Cmdliner.Arg.(value & opt int 1 & info ["p"; "project-id"] ~docv:"PROJECT_ID" ~doc)
+  Cmdliner.Arg.(required & opt (some int) None & info ["p"; "project-id"] ~doc)
 
 let api_endpoint =
-  let doc = "Endpoint of the API. Should end with \"/api/v1\"" in
-  Cmdliner.Arg.(value & opt string "https://analyzer.cryptosense.com/api/v1" & info ["u"; "url"] ~docv:"URL" ~doc)
+  let doc = "Base URL of the API. Should end with \"/api/v1\"" in
+  Cmdliner.Arg.(
+    value 
+    & opt string "https://analyzer.cryptosense.com/api/v1" 
+    & info ["u"; "api-base-url"] ~docv:"BASE_URL" ~doc
+  )
 
 let api_key =
   let doc = "API key" in
