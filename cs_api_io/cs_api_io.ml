@@ -65,10 +65,14 @@ let unsafe_send_request {Api.Request.url; form; _method; header; file} =
     )
 
 let send_request request =
-  try unsafe_send_request request with
-  | Failure _ -> Lwt_result.fail "URL could not be reached" (* Matching a specific failure results in warnings *)
-  | Tls_lwt.Tls_failure(_) -> Lwt_result.fail "Could not establish HTTPS connection"
-  | Unix.Unix_error(Unix.ECONNREFUSED, "connect", "") -> Lwt_result.fail "Could not establish network connection"
+  Lwt.catch 
+    (fun () -> unsafe_send_request request)
+    (function 
+      | Failure _ -> Lwt_result.fail "URL could not be reached" (* Matching a specific failure results in warnings *)
+      | Tls_lwt.Tls_failure(_) -> Lwt_result.fail "Could not establish HTTPS connection"
+      | Unix.Unix_error(Unix.ECONNREFUSED, "connect", "") -> Lwt_result.fail "Could not establish network connection"
+      | _ -> Lwt_result.fail "Unknown error !"
+    )
 
 let get_response (resp, body) =
   let code = resp |> Cohttp.Response.status |> Cohttp.Code.code_of_status in

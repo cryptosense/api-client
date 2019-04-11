@@ -1,27 +1,40 @@
+let get_file path =
+  Lwt.catch
+    (fun () -> 
+       path
+       |> Lwt_io.file_length
+       |> Lwt.map Int64.to_int
+       |> Lwt.map (fun (s) -> {Api.Request.path = path; size = s})
+       |> Lwt_result.ok
+    )
+    (function
+      | Unix.Unix_error(Unix.ENOENT, "stat", _) -> Lwt_result.fail ("File " ^ path ^ " not found")
+      | Unix.Unix_error(Unix.EACCES, _, _) -> Lwt_result.fail ("Permission denied on " ^ path)
+      | Unix.Unix_error(Unix.EBUSY, _, _) -> Lwt_result.fail ("File " ^ path ^ " was busy")
+      | _ -> Lwt_result.fail ("Could not read file " ^ path ^ " for unknown reasons")
+    )
+
 let main file_path trace_name project_id api_endpoint api_key =
   let open Lwt_result.Infix in
   let api = Api.make ~api_endpoint ~api_key in
-  let file_size = Int64.to_int(Lwt_main.run (Lwt_io.file_length file_path)) in
-  let file = {Api.Request.path = file_path; size = file_size} in
-  let s3_signed_post_request = Cs_api_core.build_s3_signed_post_request ~api in
-  s3_signed_post_request
-  |> Cs_api_io.send_request
-  >>= Cs_api_io.get_response
-  >>= (fun body ->
-      match Cs_api_core.parse_s3_signature_request ~body with
-      | None ->
-        Lwt.return (Error "Failed to parse S3 signature request response")
-      | Some (s3_url, s3_signature) ->
-        Lwt.return (Ok (Cs_api_core.build_file_upload_request ~s3_url ~s3_signature ~file)) )
-  >>= Cs_api_io.send_request
-  >>= Cs_api_io.get_response
-  >>= (fun (body) ->
-      let s3_key = Cs_api_core.parse_s3_response ~body in
-      let import_request = Cs_api_core.build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file in
-      Lwt.return (Ok import_request)
-    )
-  >>= Cs_api_io.send_request
-  >>= Cs_api_io.get_response
+  (get_file file_path
+   >>= fun(file) -> Cs_api_core.build_s3_signed_post_request ~api |> Cs_api_io.send_request
+   >>= Cs_api_io.get_response
+   >>= (fun body ->
+       match Cs_api_core.parse_s3_signature_request ~body with
+       | None ->
+         Lwt.return (Error "Failed to parse S3 signature request response")
+       | Some (s3_url, s3_signature) ->
+         Lwt.return (Ok (Cs_api_core.build_file_upload_request ~s3_url ~s3_signature ~file)) )
+   >>= Cs_api_io.send_request
+   >>= Cs_api_io.get_response
+   >>= (fun (body) ->
+       let s3_key = Cs_api_core.parse_s3_response ~body in
+       let import_request = Cs_api_core.build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file in
+       Lwt.return (Ok import_request)
+     )
+   >>= Cs_api_io.send_request
+   >>= Cs_api_io.get_response)
   |> Lwt_main.run
 
 
