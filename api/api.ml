@@ -24,7 +24,8 @@ module Request  = struct
     ; form : (string * string) list
     ; _method : _method
     ; header : (string * string) list
-    ; file : file option }
+    ; file : file option
+    }
 end
 
 module S3Signature = struct
