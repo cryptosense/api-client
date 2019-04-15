@@ -1,0 +1,85 @@
+stages:
+  - test
+  - artifacts
+
+.linux-build: &linux-build
+  stage: test
+  script:
+    - docker build
+        --file $DOCKERFILE
+        --force-rm
+        --build-arg DISTRIB
+        --build-arg OCAML_VERSION
+        --tag ci:$CI_JOB_NAME-$CI_COMMIT_SHA
+        .
+    - docker run
+        --entrypoint /bin/bash
+        --rm
+        ci:$CI_JOB_NAME-$CI_COMMIT_SHA
+        ci/test.sh
+  tags:
+    - docker
+
+debian-64:
+  <<: *linux-build
+  variables:
+    OCAML_VERSION: 4.07.1
+    DISTRIB: debian-9
+    DOCKERFILE: docker/opam_test.dockerfile
+
+
+
+.artifact-build: &artifact-build
+  stage: artifacts
+  script:
+    - docker build
+        --file $DOCKERFILE
+        --force-rm
+        --build-arg DISTRIB
+        --build-arg OCAML_VERSION
+        --tag ci:$CI_JOB_NAME-$CI_COMMIT_SHA
+        .
+    - docker run
+        --cidfile /tmp/cid-$CI_JOB_ID
+        --volume $(pwd)/output:/output
+        --env OUTPUT_NAME=$(echo "cs-import_$CI_JOB_NAME_$CI_COMMIT_TAG")
+        --entrypoint /bin/bash
+        ci:$CI_JOB_NAME-$CI_COMMIT_SHA
+        ci/build.sh
+    - docker cp
+        $(cat /tmp/cid-$CI_JOB_ID):/home/opam/api-client/_build/default/cs_api_cli/cs_api_cli.exe
+        cs-import_$CI_JOB_NAME-$CI_COMMIT_TAG
+    - docker rm $(cat /tmp/cid-$CI_JOB_ID)
+  tags:
+    - docker
+  only:
+    - tags
+    - master
+  when: manual
+  artifacts:
+    name: cs-import_$CI_JOB_NAME-$CI_COMMIT_TAG
+    paths:
+      - cs-import_$CI_JOB_NAME-$CI_COMMIT_TAG
+    expire_in: 1 year
+
+
+cs-api-client-rhel7-64:
+  <<: *artifact-build
+  variables:
+    OCAML_VERSION: 4.07.1
+    DISTRIB: centos-7
+    DOCKERFILE: docker/opam_build.dockerfile
+
+cs-api-client-amazon-linux-64:
+  <<: *artifact-build
+  variables:
+    OCAML_VERSION: 4.07.1
+    DOCKERFILE: docker/opam_build_amazon_linux.dockerfile
+
+cs-api-client-debian-stretch:
+  <<: *artifact-build
+  variables:
+    OCAML_VERSION: 4.07.1
+    DISTRIB: debian-9
+    DOCKERFILE: docker/opam_build.dockerfile
+
