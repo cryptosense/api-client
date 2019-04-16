@@ -54,7 +54,6 @@ debian-64:
     - docker
   only:
     - tags
-    - master
   when: manual
   artifacts:
     name: cs-import_$CI_JOB_NAME-$CI_COMMIT_TAG

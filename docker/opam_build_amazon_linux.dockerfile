@@ -30,6 +30,7 @@ WORKDIR /home/opam/api-client
 COPY --chown=opam cs_api_client.opam .
 RUN opam update \
     && opam pin add --no-action cs_api_client . -y \
-    && opam depext cs_api_client \
+    && opam install depext -y \
+    && opam depext cs_api_client -y \
     && opam install --deps-only cs_api_client -y
 COPY --chown=opam . .
