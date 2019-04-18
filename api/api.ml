@@ -10,7 +10,7 @@ let make ~api_endpoint ~api_key =
   }
 
 module Request  = struct
-  type _method =
+  type method_ =
     | Get
     | Post
 
@@ -22,7 +22,7 @@ module Request  = struct
   type t =
     { url : string
     ; form : (string * string) list
-    ; _method : _method
+    ; method_ : method_
     ; header : (string * string) list
     ; file : file option
     }

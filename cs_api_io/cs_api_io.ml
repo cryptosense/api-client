@@ -4,11 +4,11 @@ let rec convert_to_cohttp_form ?acc:(acc0=[]) form =
   | (k, v)::t -> convert_to_cohttp_form ~acc:((k, [v])::acc0) t
 
 
-let unsafe_send_request {Api.Request.url; form; _method; header; file} =
+let unsafe_send_request {Api.Request.url; form; method_; header; file} =
   print_endline ("Requesting " ^ url ^ "...");
   let headers = Cohttp.Header.add_list (Cohttp.Header.init ()) header in
   let url = Uri.of_string url in
-  match _method with
+  match method_ with
   | Get
     ->
     Lwt_result.ok (Cohttp_lwt_unix.Client.get ~headers url)

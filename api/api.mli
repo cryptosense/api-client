@@ -6,7 +6,7 @@ type t =
 val make : api_endpoint:string -> api_key:string -> t
 
 module Request : sig
-  type _method =
+  type method_ =
     | Get
     | Post
 
@@ -18,7 +18,7 @@ module Request : sig
   type t =
     { url : string
     ; form : (string * string) list
-    ; _method : _method
+    ; method_ : method_
     ; header : (string * string) list
     ; file : file option }
 end
