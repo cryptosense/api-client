@@ -39,21 +39,31 @@ let add_form_element ~name ~value mp =
 
 let add_file_from_disk ~name ~path mp =
   let open MultipartRequest in
-  { mp with 
-    elements = 
+  { mp with
+    elements =
       File { path=path
            ; name=name
            }
-      :: mp.elements 
+      :: mp.elements
   }
 
 let open_file path =
-  let open Lwt_result.Infix in
+  (* This function returns a buffered IO read of a file *)
+  let open Lwt.Infix in
+  let read_while_not_empty channel () =
+    (Lwt_io.read ~count:4096 channel)
+    >|= (fun chunck ->
+        match chunck with
+        | "" -> None
+        | _ -> Some chunck
+      )
+  in
   path
   |> Lwt_io.open_file ~mode:Lwt_io.Input
+  >|= read_while_not_empty
+  >|= Lwt_stream.from
   |> Lwt_result.ok
-  >|= Lwt_io.read_chars 
-  >|= Lwt_stream.map (String.make 1)
+
 
 let safe_open_file path =
   try%lwt open_file path with
