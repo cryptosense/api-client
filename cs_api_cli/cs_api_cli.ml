@@ -45,7 +45,7 @@ let main file_path trace_name project_id api_endpoint api_key =
 
 let info =
   let doc = "Import a trace into the Cryptosense analyzer" in
-  Cmdliner.Term.info "cs-import" ~version:"%%VERSION_NUM%%" ~doc ~exits:Cmdliner.Term.default_exits
+  Cmdliner.Term.info "cs-api" ~version:"%%VERSION_NUM%%" ~doc ~exits:Cmdliner.Term.default_exits
 
 let trace_file =
   let doc = "Path to the file containing the trace" in

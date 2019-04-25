@@ -80,8 +80,8 @@ let accumulator =
                       ^ "\r\n"
                       ^ "Content-Disposition: form-data; name=\"key\""
                       ^ "\r\n" ^ "\r\n"
-                      ^ "value"
-                      ^ "\r\n" ^ "\r\n"
+                      ^ "value" ^ "\r\n"
+                      ^ "\r\n"
                       ^ "--" ^ separator ^ "--"
                       ^ "\r\n"
                      )
@@ -90,9 +90,3 @@ let accumulator =
       ~input:[File ("missing_file", "/this/file/does/not/exist")]
       ~expected_error:"File /this/file/does/not/exist not found"
   ]
-
-let () =
-  Alcotest.run
-    "Multipart Form Writer"
-    [ ("accumulator", accumulator)
-    ]

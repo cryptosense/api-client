@@ -1,0 +1,11 @@
+(library
+    (name multipart_form_writer)
+    (libraries
+        lwt
+        lwt.unix
+        stringext
+      )
+      (preprocess
+        (pps
+          lwt_ppx
+    ))) 

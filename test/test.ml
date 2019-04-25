@@ -69,4 +69,5 @@ let () =
   Alcotest.run
     "API Client"
     [ ("Request builders", request_builder_tests)
+    ; ("Multipart writer", Test_writer.accumulator)
     ]

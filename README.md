@@ -1,8 +1,10 @@
-# API Client
+# Cryptosense API Client
+
+[![Build Status](https://travis-ci.com/cryptosense/api-client.svg?branch=master)](https://travis-ci.com/cryptosense/api-client)
 
 ## Usage
 
-cs-import - Import a trace into the Cryptosense analyzer
+cs-api - Import a trace into the Cryptosense analyzer
 
 ### Options
 
