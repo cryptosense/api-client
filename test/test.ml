@@ -4,7 +4,7 @@ let method_to_string m =
   | Get -> "GET"
 
 let file_to_tuple f =
-  match f with 
+  match f with
   | None -> None
   | Some {Api.Request.path; size} -> Some (path, size)
 
@@ -37,14 +37,16 @@ let request_builder_tests =
       ~expected_headers:[]
       ~expected_form:[ ("key", "abc")
                      ; ("signature", "cde")
+                     ; ("Content-Type", "")
+                     ; ("x-amz-meta-filename", "path")
                      ]
-      ~expected_file: (Some ("path", 10))
-      (Cs_api_core.build_file_upload_request 
+      ~expected_file: (Some ("folder/path", 10))
+      (Cs_api_core.build_file_upload_request
          ~s3_url:"url"
          ~s3_signature:[ ("key", "abc")
                        ; ("signature", "cde")
                        ]
-         ~file:{path="path"; size=10}
+         ~file:{path="folder/path"; size=10}
       )
   ; test_request
       ~name:"Trace import request"

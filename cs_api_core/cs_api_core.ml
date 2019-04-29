@@ -1,3 +1,11 @@
+(** Helpers **)
+let filename_of_file ~file =
+  match file with
+  | {Api.Request.path; _}
+    ->
+    path
+    |> Filename.basename
+
 (** Parsers **)
 let parse_s3_signature_request ~body =
   let open CCOpt.Infix in
@@ -10,11 +18,11 @@ let parse_s3_signature_request ~body =
   let awsaccesskeyid = data |> member "fields" |> member "AWSAccessKeyId" |> to_string_option in
   let policy = data |> member "fields" |> member "policy" |> to_string_option in
   let acl = data |> member "fields" |> member "acl" |> to_string_option in
-  let success_action_status = 
-    data 
+  let success_action_status =
+    data
     |> member "fields"
     |> member "success_action_status"
-    |> to_int_option 
+    |> to_int_option
   in
   url
   >>= fun url -> signature
@@ -23,7 +31,7 @@ let parse_s3_signature_request ~body =
   >>= fun awsaccesskeyid -> policy
   >>= fun policy -> acl
   >>= fun acl -> success_action_status
-  >|= fun success_action_status -> 
+  >|= fun success_action_status ->
   ( url
   , [ ("signature", signature)
     ; ("key", key)
@@ -50,7 +58,12 @@ let build_s3_signed_post_request ~api =
   }
 
 let build_file_upload_request ~s3_url ~s3_signature ~file =
-  {Api.Request.url = s3_url; form = s3_signature; method_ = Post; header = []; file = Some file}
+  { Api.Request.url = s3_url
+  ; form = s3_signature @ [("Content-Type", ""); ("x-amz-meta-filename", filename_of_file ~file)]
+  ; method_ = Post
+  ; header = []
+  ; file = Some file
+  }
 
 let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file =
   let {Api.endpoint; key} = api in
