@@ -1,6 +1,5 @@
-let erase_progress_bar size =
-  String.make size '\b'
-  |> print_string
+let erase_progress_bar _size =
+  print_string "\013\027[K"
 
 let display_progress_bar total_size current_progress =
   let width = match Terminal_size.get_columns () with
@@ -8,16 +7,17 @@ let display_progress_bar total_size current_progress =
   | None -> 80
   in
   let equal_count = (width - 10) * current_progress / total_size in
-  let progress = float_of_int(current_progress) /. float_of_int(total_size) *. 100.0 in
+  let progress = float_of_int current_progress  /. float_of_int total_size  *. 100.0 in
   let pre_progress = "[" in
   let progress_bar = String.make equal_count '=' in
   let progress_padding = String.make (width - 10 - equal_count) ' ' in
   let post_progress = Printf.sprintf "] %0.2f%%" progress in
-  let post_progress_padding = 
+  let post_progress_padding_length = 10 - 1 - String.length post_progress in
+  let post_progress_padding =
       if total_size = current_progress then
-          (String.make (10 - 1 - String.length post_progress) ' ') ^ "\n"
+          (String.make post_progress_padding_length ' ') ^ "\n"
       else
-          String.make (10 - 1 - String.length post_progress) ' '
+          String.make post_progress_padding_length ' '
   in
   let final =
     pre_progress

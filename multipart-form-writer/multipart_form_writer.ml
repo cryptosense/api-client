@@ -79,7 +79,7 @@ let open_file path =
   >>= fun file_stream -> safe_file_size path
   >|= fun file_size ->
   match file_size with
-  | Ok file_size -> Ok (Progressbar.progress_bar ~size:file_size file_stream)
+  | Ok file_size -> Ok (Progress_bar.progress_bar ~size:file_size file_stream)
   | Error err -> Error err
 
 
