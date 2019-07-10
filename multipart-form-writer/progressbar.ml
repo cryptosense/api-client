@@ -3,7 +3,10 @@ let erase_progress_bar size =
   |> print_string
 
 let display_progress_bar total_size current_progress =
-  let width = 80 in
+  let width = match Terminal_size.get_columns () with
+  | Some w -> w
+  | None -> 80
+  in
   let equal_count = (width - 10) * current_progress / total_size in
   let progress = float_of_int(current_progress) /. float_of_int(total_size) *. 100.0 in
   let pre_progress = "[" in

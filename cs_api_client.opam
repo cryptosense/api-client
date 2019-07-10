@@ -19,6 +19,7 @@ depends: [
   "lwt"
   "lwt_ppx"
   "stringext"
+  "terminal_size"
   "tls"
   "yojson"
 ]
