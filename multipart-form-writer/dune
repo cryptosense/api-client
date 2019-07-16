@@ -4,6 +4,7 @@
         lwt
         lwt.unix
         stringext
+        terminal_size
       )
       (preprocess
         (pps

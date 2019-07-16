@@ -47,6 +47,20 @@ let add_file_from_disk ~name ~path mp =
       :: mp.elements
   }
 
+let file_size path =
+  path
+  |> Lwt_io.file_length
+  |> Lwt.map Int64.to_int
+  |> Lwt_result.ok
+
+let safe_file_size path =
+  try%lwt file_size path with
+  | Unix.Unix_error(Unix.ENOENT, _, _) -> Lwt_result.fail ("File " ^ path ^ " not found")
+  | Unix.Unix_error(Unix.EACCES, _, _) -> Lwt_result.fail ("Permission denied on " ^ path)
+  | Unix.Unix_error(Unix.EBUSY, _, _) -> Lwt_result.fail ("File " ^ path ^ " was busy")
+  | Unix.Unix_error(Unix.EISDIR, _, _) -> Lwt_result.fail ("File " ^ path ^ " is a directory")
+  | _ -> Lwt_result.fail ("Unknown error while reading file " ^ path)
+
 let open_file path =
   (* This function returns a buffered IO read of a file *)
   let open Lwt.Infix in
@@ -62,25 +76,15 @@ let open_file path =
   |> Lwt_io.open_file ~mode:Lwt_io.Input
   >|= read_while_not_empty
   >|= Lwt_stream.from
-  |> Lwt_result.ok
+  >>= fun file_stream -> safe_file_size path
+  >|= fun file_size ->
+  match file_size with
+  | Ok file_size -> Ok (Progress_bar.progress_bar ~size:file_size file_stream)
+  | Error err -> Error err
 
 
 let safe_open_file path =
   try%lwt open_file path with
-  | Unix.Unix_error(Unix.ENOENT, _, _) -> Lwt_result.fail ("File " ^ path ^ " not found")
-  | Unix.Unix_error(Unix.EACCES, _, _) -> Lwt_result.fail ("Permission denied on " ^ path)
-  | Unix.Unix_error(Unix.EBUSY, _, _) -> Lwt_result.fail ("File " ^ path ^ " was busy")
-  | Unix.Unix_error(Unix.EISDIR, _, _) -> Lwt_result.fail ("File " ^ path ^ " is a directory")
-  | _ -> Lwt_result.fail ("Unknown error while reading file " ^ path)
-
-let file_size path =
-  path
-  |> Lwt_io.file_length
-  |> Lwt.map Int64.to_int
-  |> Lwt_result.ok
-
-let safe_file_size path =
-  try%lwt file_size path with
   | Unix.Unix_error(Unix.ENOENT, _, _) -> Lwt_result.fail ("File " ^ path ^ " not found")
   | Unix.Unix_error(Unix.EACCES, _, _) -> Lwt_result.fail ("Permission denied on " ^ path)
   | Unix.Unix_error(Unix.EBUSY, _, _) -> Lwt_result.fail ("File " ^ path ^ " was busy")
