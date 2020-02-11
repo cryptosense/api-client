@@ -1,5 +1,5 @@
-sudo: false
-language: C
+language: c
+os: linux
 services:
   - docker
 install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-docker.sh
@@ -8,7 +8,7 @@ env:
     - PACKAGE=cs_api_client
     - DISTRO=alpine
     - OPAMYES=true
-  matrix:
+  jobs:
     - OCAML_VERSION=4.07
     - OCAML_VERSION=4.06
     - OCAML_VERSION=4.05
@@ -20,13 +20,13 @@ jobs:
     - stage: GitHub Release
       install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
       script: bash -xe ./.travis-build.sh
-      language: C
+      language: c
       before_deploy:
         - export RELEASE_ARCHIVE=$(ls *.tar.gz)
         - echo "Releasing $RELEASE_ARCHIVE to GitHub Releases"
       deploy:
         provider: releases
-        api_key:
+        token:
           secure: XEo8BCj3cuUhWY+PJNsnjl7+FTi7+fCuWELVbQGydLvN5Ah9yjuydPQ+jlOCBK61lIXETNFAv8Fm6yP/Af2UGM64jq6mvNal1VB3L7b3SgZgIZsXlsoiTloOS9yz3JGxklVuXJXt3J7qNzfdwTAxbtvIgUPgGilakPWCPBUUyENtyHgRoIFnlm52HrpEMrIiavE9tjUBL/JU62zYRG4oiwzw62paowEjSoxOD1aIIFjNY1UIwhx6jRCZQmPtdlTAVxP/iiwsWY6N4dQaiPK48HuFAXRmOfzNZc1FPNMh61rNKBMDBv5lN2uIw28aKMmo4w7bVW+hgANlJTDbgkjPcBk+miLz270zKBOpgEPv7YurKoHOdhHE5BTTDshGEDpyDwy1P//U/I5Hso7YqNvrqikKXMt0ZESeZxLuatPFDba+YORG1Zj1FLFt4TpWjuHSqergbNfpwPtVdR0AtuDhsCv5Lxi4ILdhuNmVM3SZHyArm1UyVaA72BacU5yzf2es5JSaLQg+IuzOd5jtyOvUFIfkB5+W/TgF6h6KeuD1isP2dbfAC6KaVhPM8dtSuz5UbqSzF+biRCEAlIoWbCJUmRnRlZXXpvKtL1b7MYywsgYVQ12uNtSdH+v2THN3Zlu7+4pKyYFMyevMKpFThyLPovf7YGhUC9nG+fZ4zmkJzeo=
         file_glob: true
         file: "${RELEASE_ARCHIVE}"
