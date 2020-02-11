@@ -20,6 +20,7 @@ depends: [
   "cmdliner"
   "lwt"
   "lwt_ppx"
+  "lwt_ssl"
   "ocaml" {>= "4.04.0"}
   "stringext"
   "terminal_size"

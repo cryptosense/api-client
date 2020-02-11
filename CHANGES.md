@@ -7,7 +7,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-*No unreleased change at the moment.*
+### Security
+
+* Use OpenSSL backend of Conduit instead of the default.
 
 ## [0.0.3] - 2019-12-09
 
