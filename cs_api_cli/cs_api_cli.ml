@@ -15,6 +15,7 @@ let get_file path =
     )
 
 let main file_path trace_name project_id api_endpoint api_key =
+  Conduit_lwt_unix.tls_library := OpenSSL;
   let open Lwt_result.Infix in
   let api = Api.make ~api_endpoint ~api_key in
   ( get_file file_path

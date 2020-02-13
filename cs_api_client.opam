@@ -1,7 +1,9 @@
 opam-version: "2.0"
-maintainer: "Xavier Nunn <xavier@cryptosense.com"
-authors: "Xavier Nunn <xavier@cryptosense.com>"
-license: "Proprietary"
+maintainer: ["Cryptosense <opensource@cryptosense.com>"]
+authors: ["Cryptosense <opensource@cryptosense.com>"]
+homepage: "https://github.com/cryptosense/api-client"
+bug-reports: "https://github.com/cryptosense/api-client/issues"
+license: "BSD-2"
 build: [
   ["dune" "build" "-p" name "-j" jobs]
 ]
@@ -10,7 +12,7 @@ run-test: [
 ]
 depends: [
   "alcotest" {with-test}
-  "dune" {build}
+  "dune"
   "cohttp"
   "cohttp-lwt"
   "cohttp-lwt-unix"
@@ -18,6 +20,8 @@ depends: [
   "cmdliner"
   "lwt"
   "lwt_ppx"
+  "lwt_ssl"
+  "ocaml" {>= "4.04.0"}
   "stringext"
   "terminal_size"
   "tls"
