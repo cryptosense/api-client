@@ -26,7 +26,7 @@ let request_builder_tests =
       ~name:"S3 Signature request"
       ~expected_url:"endpoint/api/v1/trace_s3_post"
       ~expected_method:"POST"
-      ~expected_headers:[("API_KEY", "KEY")]
+      ~expected_headers:[("API-KEY", "KEY")]
       ~expected_form:[]
       ~expected_file:None
       (Cs_api_core.build_s3_signed_post_request ~api)
@@ -52,7 +52,7 @@ let request_builder_tests =
       ~name:"Trace import request"
       ~expected_url:"endpoint/api/v1/projects/9/traces"
       ~expected_method:"POST"
-      ~expected_headers:[("API_KEY", "KEY")]
+      ~expected_headers:[("API-KEY", "KEY")]
       ~expected_form:[ ("key", "abc")
                      ; ("name", "cde")
                      ; ("size", "10")
