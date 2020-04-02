@@ -61,12 +61,14 @@ let send_request request =
     )
 
 let get_response (resp, body) =
+  let open Lwt.Infix in
   let code = resp |> Cohttp.Response.status |> Cohttp.Code.code_of_status in
   match code with
   | c when c > 399
     ->
     print_endline (resp |> Cohttp.Response.status |> Cohttp.Code.string_of_status);
-    print_endline (body |> Cohttp_lwt.Body.to_string |> Lwt_main.run);
+    body |> Cohttp_lwt.Body.to_string >>= fun message ->
+    print_endline message;
     Lwt.return (Error (resp |> Cohttp.Response.status |> Cohttp.Code.string_of_status))
   | _ ->
     Lwt_result.ok (body |> Cohttp_lwt.Body.to_string)
