@@ -59,7 +59,7 @@ let build_s3_signed_post_request ~api =
   { Api.Request.url = endpoint ^ "/trace_s3_post"
   ; form = []
   ; method_ = Post
-  ; header = [("API_KEY", key)]
+  ; header = [("API-KEY", key)]
   ; file = None
   }
 
@@ -77,6 +77,6 @@ let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file =
   { Api.Request.url = endpoint ^ "/projects/" ^ project_id ^ "/traces"
   ; form = [("key", s3_key); ("name", trace_name); ("size", string_of_int size)]
   ; method_ = Post
-  ; header = [("API_KEY", key)]
+  ; header = [("API-KEY", key)]
   ; file = None
   }
