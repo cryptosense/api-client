@@ -47,7 +47,7 @@ opam install dune
 echo -en "travis_fold:end:install.package\r"
 
 ## Build
-BUILDDIR=cs-api-$(git describe --always)
+BUILDDIR=cs-api-$(git describe --always)-$DISTRO
 dune subst
 dune build --profile release cs_api_cli/cs_api_cli.exe
 mkdir $BUILDDIR
