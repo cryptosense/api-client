@@ -56,7 +56,7 @@ let parse_s3_response ~body =
 (** Request builders **)
 let build_s3_signed_post_request ~api =
   let {Api.endpoint; key} = api in
-  { Api.Request.url = endpoint ^ "/trace_s3_post"
+  { Api.Request.url = endpoint ^ "/api/v1/trace_s3_post"
   ; form = []
   ; method_ = Post
   ; header = [("API_KEY", key)]
@@ -74,7 +74,7 @@ let build_file_upload_request ~s3_url ~s3_signature ~file =
 let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file =
   let {Api.endpoint; key} = api in
   let {Api.Request.size; _} = file in
-  { Api.Request.url = endpoint ^ "/projects/" ^ project_id ^ "/traces"
+  { Api.Request.url = endpoint ^ "/api/v1/projects/" ^ project_id ^ "/traces"
   ; form = [("key", s3_key); ("name", trace_name); ("size", string_of_int size)]
   ; method_ = Post
   ; header = [("API_KEY", key)]

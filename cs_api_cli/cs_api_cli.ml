@@ -65,10 +65,10 @@ let project_id =
   Cmdliner.Arg.(required & opt (some int) None & info ["p"; "project-id"] ~doc)
 
 let api_endpoint =
-  let doc = "Base URL of the API. Should end with \"/api/v1\"" in
+  let doc = "Base URL of the API server." in
   Cmdliner.Arg.(
     value
-    & opt string "https://analyzer.cryptosense.com/api/v1" 
+    & opt string "https://analyzer.cryptosense.com"
     & info ["u"; "api-base-url"] ~docv:"BASE_URL" ~doc
   )
 
