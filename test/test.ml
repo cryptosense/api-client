@@ -24,7 +24,7 @@ let request_builder_tests =
   let api = Api.make ~api_endpoint:"endpoint" ~api_key:"KEY" in
   [ test_request
       ~name:"S3 Signature request"
-      ~expected_url:"endpoint/trace_s3_post"
+      ~expected_url:"endpoint/api/v1/trace_s3_post"
       ~expected_method:"POST"
       ~expected_headers:[("API_KEY", "KEY")]
       ~expected_form:[]
@@ -50,7 +50,7 @@ let request_builder_tests =
       )
   ; test_request
       ~name:"Trace import request"
-      ~expected_url:"endpoint/projects/9/traces"
+      ~expected_url:"endpoint/api/v1/projects/9/traces"
       ~expected_method:"POST"
       ~expected_headers:[("API_KEY", "KEY")]
       ~expected_form:[ ("key", "abc")
