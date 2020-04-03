@@ -14,7 +14,7 @@ env:
 script:
   - bash .travis-docker.sh
 before_deploy:
-  - bash .travis-release.sh
+  - docker run --env-file=env.list -v $(pwd):/repo local-build bash .travis-release.sh
   - export RELEASE_ARCHIVE=$(ls *.tar.gz)
   - echo "Releasing $RELEASE_ARCHIVE to GitHub Releases"
 deploy:
@@ -25,5 +25,5 @@ deploy:
   file: "${RELEASE_ARCHIVE}"
   skip_cleanup: true
   on:
-    repo: cryptosense/api-client
+    repo: bbc2/api-client
     tags: true
