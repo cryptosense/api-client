@@ -3,7 +3,15 @@ set -o nounset
 set -o pipefail
 set -o xtrace
 
+# Build package
+opam pin add --no-action .
+opam depext cs_api_client
+opam pin add ocaml-conduit
+opam pin add ocaml-cohttp
+opam install cs_api_client
+
+# Create archive
 archive=cs-api-$(git describe --always)-$DISTRO
 mkdir "$archive"
-cp _build/install/default/bin/cs-api "$archive/cs-api"
+cp "$(which cs-api)" "$archive/cs-api"
 tar -pcvzf "$archive.tar.gz" "$archive"
