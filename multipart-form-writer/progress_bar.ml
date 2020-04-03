@@ -12,7 +12,7 @@ let display_progress_bar total_size current_progress =
   let filled = String.make filled_count '=' in
   let empty = String.make (available_count - filled_count) ' ' in
   Printf.printf
-    "[%s%s] %6.2f%%"
+    "[%s%s] %6.2f%%%!"
     filled
     empty
     percentage
