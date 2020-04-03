@@ -25,5 +25,5 @@ deploy:
   file: "${RELEASE_ARCHIVE}"
   skip_cleanup: true
   on:
-    repo: cryptosense/api-client
+    repo: bbc2/api-client
     tags: true
