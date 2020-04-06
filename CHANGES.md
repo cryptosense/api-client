@@ -7,6 +7,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+_No unreleased changes at the moment._
+
+## [1.0.0] - 2020-04-06
+
 ### Changed
 
 * Make trace upload a subcommand: `cs-api upload-trace`.
@@ -43,7 +47,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Initial release.
 
-[Unreleased]: https://github.com/cryptosense/api-client/compare/0.0.4...HEAD
+[Unreleased]: https://github.com/cryptosense/api-client/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/cryptosense/api-client/compare/0.0.4...1.0.0
 [0.0.4]: https://github.com/cryptosense/api-client/compare/0.0.3...0.0.4
 [0.0.3]: https://github.com/cryptosense/api-client/compare/0.0.2...0.0.3
 [0.0.2]: https://github.com/cryptosense/api-client/compare/0.0.1...0.0.2

@@ -4,24 +4,32 @@
 
 ## Usage
 
-Example:
+### Example
 
 ```bash
-> ./cs-api \
+$ export CRYPTOSENSE_API_KEY=secret
+$ ./cs-api upload-trace \
     --project-id 1 \
     --trace-name 'Test trace' \
-    --trace-file test_trace.cst.gz \
-    --no-check-certificate \
-    --api-base-url https://cryptosense-analyzer.local
-Request: POST https://cryptosense-analyzer.local/api/v1/trace_s3_post
-Request: POST https://cryptosense-analyzer.local/api/v1/trace_s3_post
-Request: POST https://cryptosense-analyzer.local/storage-traces
+    --trace-file test_trace.cst.gz
+Request: POST https://analyzer.cryptosense.com/api/v1/trace_s3_post
+Request: POST https://analyzer.cryptosense.com/api/v1/trace_s3_post
+Request: POST https://analyzer.cryptosense.com/storage-traces
 [=====================================================================================] 100.00%
-Request: POST https://cryptosense-analyazer.local/api/v1/projects/1/traces
+Request: POST https://analyzer.cryptosense.com/api/v1/projects/1/traces
 Trace imported
 ```
 
 For more information about the CLI parameters, run: `cs-api --help`.
+
+### FAQ
+
+#### How to upload to a local instance of Cryptosense Analyzer?
+
+Use the `--api-base-url` parameter to point the CLI at your local instance.
+
+If you are using self-signed certificates and want to upload anyway, use the
+`--no-check-certificate` option.
 
 ## Development
 
