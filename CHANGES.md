@@ -19,6 +19,7 @@ _No unreleased changes at the moment._
 ### Fixed
 
 * Fix flickering of progress bar.
+* Fix API key header for on-premises installations: `API_KEY` -> `API-KEY`.
 
 ### Added
 
