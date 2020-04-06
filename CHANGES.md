@@ -7,6 +7,20 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+* Make trace upload a subcommand: `cs-api upload-trace`.
+* The `/api/v1` URL segment must not be specified in the URL passed with `--api-base-url`.
+
+### Fixed
+
+* Fix flickering of progress bar.
+
+### Added
+
+* Add a release compatible with CentOS 7 and derived distributions (e.g. RHEL 7).
+* Add `--no-check-certificate` option
+
 ## [0.0.4] - 2020-02-17
 
 ### Security
