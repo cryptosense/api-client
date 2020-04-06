@@ -14,12 +14,13 @@ let get_file path =
       | _ -> Lwt_result.fail ("Could not read file " ^ path ^ " for unknown reasons")
     )
 
-let main file_path trace_name project_id api_endpoint api_key no_check_certificate =
-  let open Lwt_result.Infix in
+let upload_trace ~trace_file ~trace_name ~project_id ~api_endpoint ~api_key ~no_check_certificate =
+  let open Lwt.Infix in
   Conduit_lwt_unix.tls_library := OpenSSL;
   let verify = not no_check_certificate in
   let api = Api.make ~api_endpoint ~api_key in
-  ( get_file file_path
+  ( let open Lwt_result.Infix in
+    get_file trace_file
     >>= fun(file) -> Cs_api_core.build_s3_signed_post_request ~api |> Cs_api_io.send_request ~verify
     >>= Cs_api_io.get_response
     >>= ( fun body ->
@@ -41,13 +42,15 @@ let main file_path trace_name project_id api_endpoint api_key no_check_certifica
       )
     >>= Cs_api_io.send_request ~verify
     >>= Cs_api_io.get_response
+    >|= (fun _ -> Printf.printf "Trace uploaded\n")
   )
-  |> Lwt_main.run
+  >|= function
+  | Ok _ as ok ->
+    ok
+  | Error message ->
+    Printf.printf "%s\n" message;
+    Error ()
 
-
-let info =
-  let doc = "Import a trace into the Cryptosense analyzer" in
-  Cmdliner.Term.info "cs-api" ~version:"%%VERSION_NUM%%" ~doc ~exits:Cmdliner.Term.default_exits
 
 let trace_file =
   let doc = "Path to the file containing the trace" in
@@ -86,17 +89,35 @@ let no_check_certificate =
   in
   Cmdliner.Arg.(value & flag & info ~doc ["no-check-certificate"])
 
-let main_t trace_file trace_name project_id api_endpoint api_key no_check_certificate =
-  match main trace_file trace_name (string_of_int project_id) api_endpoint api_key no_check_certificate with
-  | Ok _
-    ->
-    print_endline "Trace successfully imported"
-  | Error s
-    ->
-    print_endline s
+let upload_trace_main trace_file trace_name project_id api_endpoint api_key no_check_certificate =
+    upload_trace
+      ~trace_file
+      ~trace_name
+      ~project_id:(string_of_int project_id)
+      ~api_endpoint
+      ~api_key
+      ~no_check_certificate
+    |> Lwt_main.run
 
-let import_t =
-  Cmdliner.Term.(const main_t $ trace_file $ trace_name $ project_id $ api_endpoint $ api_key $ no_check_certificate)
+let upload_trace_term =
+  Cmdliner.Term.
+    (const upload_trace_main $ trace_file $ trace_name $ project_id $ api_endpoint $
+     api_key $ no_check_certificate)
+
+let upload_trace_info =
+  Cmdliner.Term.info "upload-trace"
+    ~doc:"Upload a trace to the Cryptosense Analyzer platform"
+
+let upload_trace_cmd = (upload_trace_term, upload_trace_info)
+
+let default_term =
+  Cmdliner.Term.(ret (const (`Error (true, "Missing command"))))
+
+let default_info =
+  Cmdliner.Term.info "cs-api" ~version:"%%VERSION_NUM%%"
+
+let default_cmd = (default_term, default_info)
 
 let () =
-  Cmdliner.Term.exit @@ Cmdliner.Term.eval (import_t, info)
+  Cmdliner.Term.eval_choice default_cmd [upload_trace_cmd]
+  |> Cmdliner.Term.exit
