@@ -24,6 +24,11 @@ For more information about the CLI parameters, run: `cs-api --help`.
 
 ### FAQ
 
+#### How to find the ID of my project?
+
+In the web interface, select your project by clicking it and copy the number after
+`/projects/` in the URL.
+
 #### How to upload to a local instance of Cryptosense Analyzer?
 
 Use the `--api-base-url` parameter to point the CLI at your local instance.
