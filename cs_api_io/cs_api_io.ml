@@ -8,7 +8,9 @@ let get_ctx ~verify =
   Conduit_lwt_unix.init ~verify () >|= fun ctx ->
   Cohttp_lwt_unix.Client.custom_ctx ~ctx ()
 
-let send_request_exn ~verify {Api.Request.url; form; method_; header; file} =
+let send_request_exn
+    ~verify
+    {Api.Request.url; data = Multipart {form; file}; method_; header} =
   let open Lwt.Infix in
   let method_str =
     match method_ with
@@ -23,7 +25,7 @@ let send_request_exn ~verify {Api.Request.url; form; method_; header; file} =
   | Get -> Lwt_result.ok (Cohttp_lwt_unix.Client.get ~ctx ~headers url)
   | Post -> (
     match file with
-    | Some {Api.Request.path; _} ->
+    | Some {path; _} ->
       let multipart =
         List.fold_left
           (fun mp (name, value) ->

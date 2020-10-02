@@ -4,7 +4,7 @@ let get_file path =
       path
       |> Lwt_io.file_length
       |> Lwt.map Int64.to_int
-      |> Lwt.map (fun s -> {Api.Request.path; size = s})
+      |> Lwt.map (fun s -> {Api.File.path; size = s})
       |> Lwt_result.ok)
     (function
       | Unix.Unix_error (Unix.ENOENT, "stat", _) ->

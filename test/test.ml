@@ -1,12 +1,10 @@
-let method_to_string m =
-  match m with
-  | Api.Request.Post -> "POST"
+let method_to_string : Api.Method.t -> _ = function
+  | Post -> "POST"
   | Get -> "GET"
 
-let file_to_tuple f =
-  match f with
+let file_to_tuple : Api.File.t option -> _ = function
   | None -> None
-  | Some {Api.Request.path; size} -> Some (path, size)
+  | Some {path; size} -> Some (path, size)
 
 let test_request
     ~name
@@ -15,7 +13,7 @@ let test_request
     ~expected_headers
     ~expected_form
     ~expected_file
-    {Api.Request.url; form; method_; header; file} =
+    {Api.Request.url; method_; data = Multipart {form; file}; header} =
   let open Alcotest in
   ( name
   , `Quick
