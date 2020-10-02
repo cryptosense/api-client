@@ -4,4 +4,5 @@
 
 (install
  (section bin)
- (files (cs_api_cli.exe as cs-api)))
+ (files
+  (cs_api_cli.exe as cs-api)))

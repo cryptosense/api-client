@@ -1,7 +1,6 @@
-type t = 
+type t =
   { endpoint : string
-  ; key : string
-  }
+  ; key : string }
 
 val make : api_endpoint:string -> api_key:string -> t
 
@@ -12,8 +11,7 @@ module Request : sig
 
   type file =
     { path : string
-    ; size : int
-    }
+    ; size : int }
 
   type t =
     { url : string
@@ -24,7 +22,5 @@ module Request : sig
 end
 
 module S3Signature : sig
-
   type t = (string * string) list
-
 end

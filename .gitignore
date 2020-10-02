@@ -1,4 +1,2 @@
-_build/
 .merlin
-.ocamlformat
-.exe
+_build
