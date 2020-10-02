@@ -24,6 +24,7 @@ depends: [
   "lwt_ppx"
   "lwt_ssl"
   "ocaml" {>= "4.04.0"}
+  "ppx_deriving"
   "stringext"
   "terminal_size"
   "tls"

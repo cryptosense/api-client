@@ -8,13 +8,27 @@ module File : sig
   type t =
     { path : string
     ; size : int }
+  [@@deriving eq, ord, show]
+end
+
+module Content : sig
+  type t =
+    | Direct of string
+    | File of File.t
+  [@@deriving eq, ord, show]
+end
+
+module Part : sig
+  type t =
+    { name : string
+    ; content : Content.t }
+  [@@deriving eq, ord, show]
 end
 
 module Data : sig
-  type t =
-    | Multipart of
-        { form : (string * string) list
-        ; file : File.t option }
+  type t = Multipart of Part.t list [@@deriving eq, ord, show]
+
+  val multipart_from_assoc : (string * string) list -> Part.t list
 end
 
 module Method : sig
@@ -26,9 +40,10 @@ end
 module Request : sig
   type t =
     { url : string
-    ; method_ : Method.t
     ; header : (string * string) list
+    ; method_ : Method.t
     ; data : Data.t }
+  [@@deriving eq, ord, show]
 end
 
 module S3Signature : sig

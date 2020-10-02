@@ -1,9 +1,3 @@
-(** Helpers **)
-let filename_of_file ~file =
-  match file with
-  | {Api.File.path; _} -> path |> Filename.basename
-
-(** Parsers **)
 let parse_s3_signature_request ~body =
   let open CCOpt.Infix in
   let open Yojson.Basic.Util in
@@ -52,34 +46,34 @@ let parse_s3_response ~body =
   let _ = Str.search_forward key_extractor body 0 in
   Str.matched_group 1 body
 
-(** Request builders **)
 let build_s3_signed_post_request ~api =
   let {Api.endpoint; key} = api in
   { Api.Request.url = endpoint ^ "/api/v1/trace_s3_post"
-  ; data = Multipart {form = []; file = None}
+  ; header = [("API-KEY", key)]
   ; method_ = Post
-  ; header = [("API-KEY", key)] }
+  ; data = Multipart [] }
 
-let build_file_upload_request ~s3_url ~s3_signature ~file =
+let build_file_upload_request ~s3_url ~s3_signature ~(file : Api.File.t) =
+  let direct_fields =
+    Api.Data.multipart_from_assoc
+      ( s3_signature
+      @ [ ("Content-Type", "")
+        ; ("x-amz-meta-filename", Filename.basename file.path) ] )
+  in
   { Api.Request.url = s3_url
-  ; data =
-      Multipart
-        { form =
-            s3_signature
-            @ [ ("Content-Type", "")
-              ; ("x-amz-meta-filename", filename_of_file ~file) ]
-        ; file = Some file }
+  ; header = []
   ; method_ = Post
-  ; header = [] }
+  ; data = Multipart (direct_fields @ [{name = "trace"; content = File file}])
+  }
 
 let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file =
   let {Api.endpoint; key} = api in
   let {Api.File.size; _} = file in
   { Api.Request.url = endpoint ^ "/api/v1/projects/" ^ project_id ^ "/traces"
+  ; header = [("API-KEY", key)]
+  ; method_ = Post
   ; data =
       Multipart
-        { form =
-            [("key", s3_key); ("name", trace_name); ("size", string_of_int size)]
-        ; file = None }
-  ; method_ = Post
-  ; header = [("API-KEY", key)] }
+        (Api.Data.multipart_from_assoc
+           [("key", s3_key); ("name", trace_name); ("size", string_of_int size)])
+  }

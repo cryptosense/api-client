@@ -8,27 +8,44 @@ module File = struct
   type t =
     { path : string
     ; size : int }
+  [@@deriving eq, ord, show]
+end
+
+module Content = struct
+  type t =
+    | Direct of string
+    | File of File.t
+  [@@deriving eq, ord, show]
+end
+
+module Part = struct
+  type t =
+    { name : string
+    ; content : Content.t }
+  [@@deriving eq, ord, show]
 end
 
 module Data = struct
-  type t =
-    | Multipart of
-        { form : (string * string) list
-        ; file : File.t option }
+  type t = Multipart of Part.t list [@@deriving eq, ord, show]
+
+  let multipart_from_assoc assoc =
+    assoc |> List.map (fun (name, value) -> {Part.name; content = Direct value})
 end
 
 module Method = struct
   type t =
     | Get
     | Post
+  [@@deriving eq, ord, show]
 end
 
 module Request = struct
   type t =
     { url : string
-    ; method_ : Method.t
     ; header : (string * string) list
+    ; method_ : Method.t
     ; data : Data.t }
+  [@@deriving eq, ord, show]
 end
 
 module S3Signature = struct

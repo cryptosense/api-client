@@ -3,9 +3,16 @@ let get_ctx ~verify =
   Conduit_lwt_unix.init ~verify () >|= fun ctx ->
   Cohttp_lwt_unix.Client.custom_ctx ~ctx ()
 
+let add_part ~multipart {Api.Part.name; content} =
+  match content with
+  | Direct value ->
+    Multipart_form_writer.add_form_element ~name ~value multipart
+  | File {path; size = _} ->
+    Multipart_form_writer.add_file_from_disk ~name ~path multipart
+
 let send_request_exn
     ~verify
-    {Api.Request.url; data = Multipart {form; file}; method_; header} =
+    {Api.Request.url; header; method_; data = Multipart parts} =
   let open Lwt.Infix in
   let method_str =
     match method_ with
@@ -21,16 +28,9 @@ let send_request_exn
   | Post ->
     let multipart =
       List.fold_left
-        (fun mp (name, value) ->
-          Multipart_form_writer.add_form_element ~name ~value mp)
+        (fun multipart part -> add_part ~multipart part)
         (Multipart_form_writer.init ())
-        form
-    in
-    let multipart =
-      match file with
-      | Some {path; _} ->
-        Multipart_form_writer.add_file_from_disk ~name:"trace" ~path multipart
-      | None -> multipart
+        parts
     in
     let open Lwt_result.Infix in
     Multipart_form_writer.r_body multipart >>= fun mp_body ->
