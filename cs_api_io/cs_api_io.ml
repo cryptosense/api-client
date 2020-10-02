@@ -1,8 +1,3 @@
-let rec convert_to_cohttp_form ?acc:(acc0 = []) form =
-  match form with
-  | [] -> acc0
-  | (k, v) :: t -> convert_to_cohttp_form ~acc:((k, [v]) :: acc0) t
-
 let get_ctx ~verify =
   let open Lwt.Infix in
   Conduit_lwt_unix.init ~verify () >|= fun ctx ->
@@ -23,30 +18,26 @@ let send_request_exn
   get_ctx ~verify >>= fun ctx ->
   match method_ with
   | Get -> Lwt_result.ok (Cohttp_lwt_unix.Client.get ~ctx ~headers url)
-  | Post -> (
-    match file with
-    | Some {path; _} ->
-      let multipart =
-        List.fold_left
-          (fun mp (name, value) ->
-            Multipart_form_writer.add_form_element ~name ~value mp)
-          (Multipart_form_writer.init ())
-          form
-      in
-      let multipart =
+  | Post ->
+    let multipart =
+      List.fold_left
+        (fun mp (name, value) ->
+          Multipart_form_writer.add_form_element ~name ~value mp)
+        (Multipart_form_writer.init ())
+        form
+    in
+    let multipart =
+      match file with
+      | Some {path; _} ->
         Multipart_form_writer.add_file_from_disk ~name:"trace" ~path multipart
-      in
-      let open Lwt_result.Infix in
-      Multipart_form_writer.r_body multipart >>= fun mp_body ->
-      Multipart_form_writer.r_headers multipart >>= fun mp_headers ->
-      let co_headers = Cohttp.Header.add_list headers mp_headers in
-      let co_body = Cohttp_lwt.Body.of_stream mp_body in
-      Lwt_result.ok
-        (Cohttp_lwt_unix.Client.post ~ctx ~body:co_body ~headers:co_headers url)
-    | None ->
-      let form = convert_to_cohttp_form form in
-      Lwt_result.ok
-        (Cohttp_lwt_unix.Client.post_form ~ctx ~headers ~params:form url) )
+      | None -> multipart
+    in
+    let open Lwt_result.Infix in
+    Multipart_form_writer.r_body multipart >>= fun mp_body ->
+    Multipart_form_writer.r_headers multipart >>= fun mp_headers ->
+    let headers = Cohttp.Header.add_list headers mp_headers in
+    let body = Cohttp_lwt.Body.of_stream mp_body in
+    Lwt_result.ok (Cohttp_lwt_unix.Client.post ~ctx ~body ~headers url)
 
 let send_request ?(verify = true) request =
   Lwt.catch
