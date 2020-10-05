@@ -26,7 +26,10 @@ module Part = struct
 end
 
 module Data = struct
-  type t = Multipart of Part.t list [@@deriving eq, ord, show]
+  type t =
+    | Raw of string
+    | Multipart of Part.t list
+  [@@deriving eq, ord, show]
 
   let multipart_from_assoc assoc =
     assoc |> List.map (fun (name, value) -> {Part.name; content = Direct value})

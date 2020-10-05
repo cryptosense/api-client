@@ -10,9 +10,20 @@ let add_part ~multipart {Api.Part.name; content} =
   | File {path; size = _} ->
     Multipart_form_writer.add_file_from_disk ~name ~path multipart
 
-let send_request_exn
-    ~verify
-    {Api.Request.url; header; method_; data = Multipart parts} =
+let handle_raw str = Lwt_result.return ([], Lwt_stream.of_list [str])
+
+let handle_multipart parts =
+  let open Lwt_result.Infix in
+  let multipart =
+    List.fold_left
+      (fun multipart part -> add_part ~multipart part)
+      (Multipart_form_writer.init ())
+      parts
+  in
+  Multipart_form_writer.r_body multipart >>= fun body ->
+  Multipart_form_writer.r_headers multipart >|= fun headers -> (headers, body)
+
+let send_request_exn ~verify {Api.Request.url; header; method_; data} =
   let open Lwt.Infix in
   let method_str =
     match method_ with
@@ -23,20 +34,16 @@ let send_request_exn
   let headers = Cohttp.Header.add_list (Cohttp.Header.init ()) header in
   let url = Uri.of_string url in
   get_ctx ~verify >>= fun ctx ->
+  let open Lwt_result.Infix in
   match method_ with
   | Get -> Lwt_result.ok (Cohttp_lwt_unix.Client.get ~ctx ~headers url)
   | Post ->
-    let multipart =
-      List.fold_left
-        (fun multipart part -> add_part ~multipart part)
-        (Multipart_form_writer.init ())
-        parts
-    in
-    let open Lwt_result.Infix in
-    Multipart_form_writer.r_body multipart >>= fun mp_body ->
-    Multipart_form_writer.r_headers multipart >>= fun mp_headers ->
-    let headers = Cohttp.Header.add_list headers mp_headers in
-    let body = Cohttp_lwt.Body.of_stream mp_body in
+    ( match data with
+    | Raw str -> handle_raw str
+    | Multipart parts -> handle_multipart parts )
+    >>= fun (extra_headers, body) ->
+    let headers = Cohttp.Header.add_list headers extra_headers in
+    let body = Cohttp_lwt.Body.of_stream body in
     Lwt_result.ok (Cohttp_lwt_unix.Client.post ~ctx ~body ~headers url)
 
 let send_request ?(verify = true) request =

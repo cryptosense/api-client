@@ -26,7 +26,10 @@ module Part : sig
 end
 
 module Data : sig
-  type t = Multipart of Part.t list [@@deriving eq, ord, show]
+  type t =
+    | Raw of string
+    | Multipart of Part.t list
+  [@@deriving eq, ord, show]
 
   val multipart_from_assoc : (string * string) list -> Part.t list
 end
