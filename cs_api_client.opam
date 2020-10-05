@@ -19,6 +19,7 @@ depends: [
   "cohttp-lwt-unix"
   "containers"
   "cmdliner"
+  "hacl_x25519" {< "0.2.0"}
   "lwt"
   "lwt_ppx"
   "lwt_ssl"
