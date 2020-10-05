@@ -40,16 +40,26 @@ let request_builder_tests =
            ~file:{path = "folder/path"; size = 10})
   ; test_request ~name:"Trace import request"
       ~expected:
-        { url = "endpoint/api/v1/projects/9/traces"
-        ; header = [("API-KEY", "KEY")]
+        { url = "endpoint/api/v2"
+        ; header = [("API-KEY", "KEY"); ("Content-Type", "application/json")]
         ; method_ = Post
         ; data =
-            Multipart
-              (Api.Data.multipart_from_assoc
-                 [("key", "abc"); ("name", "cde"); ("size", "10")]) }
+            Raw
+              (Yojson.Safe.to_string
+                 (`Assoc
+                   [ ("query", `String Cs_api_core.Graphql.create_trace)
+                   ; ( "variables"
+                     , `Assoc
+                         [ ( "projectId"
+                           , `String
+                               (Cs_api_core.Graphql.to_global_id
+                                  ~type_:"Project" ~id:9) )
+                         ; ("name", `String "cde")
+                         ; ("key", `String "abc")
+                         ; ("size", `Int 10) ] ) ])) }
       ~actual:
-        (Cs_api_core.build_trace_import_request ~api ~project_id:"9"
-           ~s3_key:"abc" ~trace_name:"cde" ~file:{path = "path"; size = 10}) ]
+        (Cs_api_core.build_trace_import_request ~api ~project_id:9 ~s3_key:"abc"
+           ~trace_name:"cde" ~file:{path = "path"; size = 10}) ]
 
 let () =
   Alcotest.run "API Client"

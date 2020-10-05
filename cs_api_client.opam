@@ -13,6 +13,7 @@ run-test: [
 ]
 depends: [
   "alcotest" {with-test}
+  "base64"
   "dune" {>= "2.7.0"}
   "cohttp"
   "cohttp-lwt"

@@ -1,3 +1,26 @@
+module Graphql = struct
+  let to_global_id ~type_ ~id =
+    Printf.sprintf "%s:%d" type_ id |> Base64.encode |> Result.get_ok
+
+  let create_trace =
+    {|
+      mutation CreateTrace($projectId: ID!, $name: String!, $key: String!, $size: Int!) {
+        createTrace(
+          input: {
+            projectId: $projectId,
+            name: $name,
+            key: $key,
+            size: $size
+          }
+        ) {
+          trace {
+            id
+          }
+        }
+      }
+    |}
+end
+
 let parse_s3_signature_request ~body =
   let open CCOpt.Infix in
   let open Yojson.Basic.Util in
@@ -69,11 +92,20 @@ let build_file_upload_request ~s3_url ~s3_signature ~(file : Api.File.t) =
 let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file =
   let {Api.endpoint; key} = api in
   let {Api.File.size; _} = file in
-  { Api.Request.url = endpoint ^ "/api/v1/projects/" ^ project_id ^ "/traces"
-  ; header = [("API-KEY", key)]
+  { Api.Request.url = endpoint ^ "/api/v2"
+  ; header = [("API-KEY", key); ("Content-Type", "application/json")]
   ; method_ = Post
   ; data =
-      Multipart
-        (Api.Data.multipart_from_assoc
-           [("key", s3_key); ("name", trace_name); ("size", string_of_int size)])
-  }
+      Raw
+        (Yojson.Safe.to_string
+           (`Assoc
+             [ ("query", `String Graphql.create_trace)
+             ; ( "variables"
+               , `Assoc
+                   [ ( "projectId"
+                     , `String
+                         (Graphql.to_global_id ~type_:"Project" ~id:project_id)
+                     )
+                   ; ("name", `String trace_name)
+                   ; ("key", `String s3_key)
+                   ; ("size", `Int size) ] ) ])) }

@@ -108,8 +108,8 @@ let upload_trace_main
     api_endpoint
     api_key
     no_check_certificate =
-  upload_trace ~trace_file ~trace_name ~project_id:(string_of_int project_id)
-    ~api_endpoint ~api_key ~no_check_certificate
+  upload_trace ~trace_file ~trace_name ~project_id ~api_endpoint ~api_key
+    ~no_check_certificate
   |> Lwt_main.run
 
 let upload_trace_term =

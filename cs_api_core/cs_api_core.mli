@@ -1,3 +1,9 @@
+module Graphql : sig
+  val to_global_id : type_:string -> id:int -> string
+
+  val create_trace : string
+end
+
 val parse_s3_signature_request :
   body:string -> (string * Api.S3Signature.t) option
 (** Response parsing functions **)
@@ -15,7 +21,7 @@ val build_file_upload_request :
 
 val build_trace_import_request :
      api:Api.t
-  -> project_id:string
+  -> project_id:int
   -> s3_key:string
   -> trace_name:string
   -> file:Api.File.t
