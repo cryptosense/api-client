@@ -7,7 +7,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-_No unreleased changes at the moment._
+### Changed
+
+* Use Cryptosense v2 API to create traces.
 
 ## [1.0.0] - 2020-04-06
 

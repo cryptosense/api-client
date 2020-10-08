@@ -7,8 +7,8 @@ install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.t
 env:
   global:
     - PACKAGE=cs_api_client
-    - OCAML_VERSION=4.08
-    - PINS="cohttp:ocaml-cohttp cohttp-lwt:ocaml-cohttp cohttp-lwt-unix:ocaml-cohttp conduit:ocaml-conduit conduit-lwt:ocaml-conduit conduit-lwt-unix:ocaml-conduit"
+    - OCAML_VERSION=4.10
+    - PINS="conduit-lwt-unix:https://github.com/cryptosense/ocaml-conduit.git#2d26898b6102f3ee24152de217b2273ea4973b98"
   jobs:
     - DISTRO=debian-10
     - DISTRO=centos-7

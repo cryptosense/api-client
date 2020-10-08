@@ -1,75 +1,67 @@
-let method_to_string m =
-  match m with
-  | Api.Request.Post -> "POST"
+let method_to_string : Api.Method.t -> _ = function
+  | Post -> "POST"
   | Get -> "GET"
 
-let file_to_tuple f =
-  match f with
+let file_to_tuple : Api.File.t option -> _ = function
   | None -> None
-  | Some {Api.Request.path; size} -> Some (path, size)
+  | Some {path; size} -> Some (path, size)
 
-let test_request ~name ~expected_url ~expected_method ~expected_headers ~expected_form ~expected_file {Api.Request.url; form; method_; header; file} =
-  let open Alcotest in
+let test_request ~name ~expected ~actual =
   ( name
   , `Quick
-  , fun () ->
-    check string (name ^ " url") expected_url url;
-    check string (name ^ " method") expected_method (method_to_string method_);
-    check (list (pair string string)) (name ^ " headers") expected_headers header;
-    check (list (pair string string)) (name ^ " form") expected_form form;
-    check (option (pair string int)) (name ^ " file") expected_file (file_to_tuple file)
-  )
+  , fun () -> Alcotest.check (module Api.Request) name expected actual )
 
 let request_builder_tests =
   let api = Api.make ~api_endpoint:"endpoint" ~api_key:"KEY" in
-  [ test_request
-      ~name:"S3 Signature request"
-      ~expected_url:"endpoint/api/v1/trace_s3_post"
-      ~expected_method:"POST"
-      ~expected_headers:[("API-KEY", "KEY")]
-      ~expected_form:[]
-      ~expected_file:None
-      (Cs_api_core.build_s3_signed_post_request ~api)
-  ; test_request
-      ~name:"File upload request"
-      ~expected_url:"url"
-      ~expected_method:"POST"
-      ~expected_headers:[]
-      ~expected_form:[ ("key", "abc")
-                     ; ("signature", "cde")
-                     ; ("Content-Type", "")
-                     ; ("x-amz-meta-filename", "path")
-                     ]
-      ~expected_file: (Some ("folder/path", 10))
-      (Cs_api_core.build_file_upload_request
-         ~s3_url:"url"
-         ~s3_signature:[ ("key", "abc")
-                       ; ("signature", "cde")
-                       ]
-         ~file:{path="folder/path"; size=10}
-      )
-  ; test_request
-      ~name:"Trace import request"
-      ~expected_url:"endpoint/api/v1/projects/9/traces"
-      ~expected_method:"POST"
-      ~expected_headers:[("API-KEY", "KEY")]
-      ~expected_form:[ ("key", "abc")
-                     ; ("name", "cde")
-                     ; ("size", "10")
-                     ]
-      ~expected_file:None
-      (Cs_api_core.build_trace_import_request
-         ~api
-         ~project_id:"9"
-         ~s3_key:"abc"
-         ~trace_name:"cde"
-         ~file:{path="path"; size=10}
-      )
-  ]
+  [ test_request ~name:"S3 Signature request"
+      ~expected:
+        { Api.Request.url = "endpoint/api/v1/trace_s3_post"
+        ; header = [("API-KEY", "KEY")]
+        ; method_ = Post
+        ; data = Multipart [] }
+      ~actual:(Cs_api_core.build_s3_signed_post_request ~api)
+  ; test_request ~name:"File upload request"
+      ~expected:
+        { url = "url"
+        ; header = []
+        ; method_ = Post
+        ; data =
+            Multipart
+              ( Api.Data.multipart_from_assoc
+                  [ ("key", "abc")
+                  ; ("signature", "cde")
+                  ; ("Content-Type", "")
+                  ; ("x-amz-meta-filename", "path") ]
+              @ [ { name = "trace"
+                  ; content = File {path = "folder/path"; size = 10} } ] ) }
+      ~actual:
+        (Cs_api_core.build_file_upload_request ~s3_url:"url"
+           ~s3_signature:[("key", "abc"); ("signature", "cde")]
+           ~file:{path = "folder/path"; size = 10})
+  ; test_request ~name:"Trace import request"
+      ~expected:
+        { url = "endpoint/api/v2"
+        ; header = [("API-KEY", "KEY"); ("Content-Type", "application/json")]
+        ; method_ = Post
+        ; data =
+            Raw
+              (Yojson.Safe.to_string
+                 (`Assoc
+                   [ ("query", `String Cs_api_core.Graphql.create_trace)
+                   ; ( "variables"
+                     , `Assoc
+                         [ ( "projectId"
+                           , `String
+                               (Cs_api_core.Graphql.to_global_id
+                                  ~type_:"Project" ~id:9) )
+                         ; ("name", `String "cde")
+                         ; ("key", `String "abc")
+                         ; ("size", `Int 10) ] ) ])) }
+      ~actual:
+        (Cs_api_core.build_trace_import_request ~api ~project_id:9 ~s3_key:"abc"
+           ~trace_name:"cde" ~file:{path = "path"; size = 10}) ]
 
 let () =
-  Alcotest.run
-    "API Client"
+  Alcotest.run "API Client"
     [ ("Request builders", request_builder_tests)
-    ; ("Multipart writer", Test_writer.accumulator)
-    ]
+    ; ("Multipart writer", Test_writer.accumulator) ]

@@ -1,12 +1,5 @@
 (library
-    (name multipart_form_writer)
-    (libraries
-        lwt
-        lwt.unix
-        stringext
-        terminal_size
-      )
-      (preprocess
-        (pps
-          lwt_ppx
-    ))) 
+ (name multipart_form_writer)
+ (libraries lwt lwt.unix stringext terminal_size)
+ (preprocess
+  (pps lwt_ppx)))

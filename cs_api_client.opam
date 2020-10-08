@@ -13,16 +13,19 @@ run-test: [
 ]
 depends: [
   "alcotest" {with-test}
-  "dune"
+  "base64"
+  "dune" {>= "2.7.0"}
   "cohttp"
   "cohttp-lwt"
   "cohttp-lwt-unix"
   "containers"
   "cmdliner"
+  "hacl_x25519" {< "0.2.0"}
   "lwt"
   "lwt_ppx"
   "lwt_ssl"
   "ocaml" {>= "4.04.0"}
+  "ppx_deriving"
   "stringext"
   "terminal_size"
   "tls"

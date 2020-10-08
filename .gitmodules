@@ -1,8 +1,0 @@
-[submodule "ocaml-cohttp"]
-	path = ocaml-cohttp
-	url = https://github.com/cryptosense/ocaml-cohttp.git
-	branch = fix-example
-[submodule "ocaml-conduit"]
-	path = ocaml-conduit
-	url = https://github.com/cryptosense/ocaml-conduit.git
-	branch = add-certificate-verification-option
