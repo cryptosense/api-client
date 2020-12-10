@@ -20,36 +20,16 @@ let set_headers curl header =
         (fun (h, v) -> h ^ ": " ^ v)
         header)
 
-let set_part curl {Api.Part.name; content} =
+let set_part _ {Api.Part.name; content} =
   match content with
   | Direct s ->
-          { Curl.encoding = Curl.CURLMIME_QUOTEDPRINTABLE
-          ; headers = ["Content-Disposition: form-data; name=\"" ^ name ^ "\""]
-          ; subparts = []
-          ; data = Curl.CURLMIME_DATA s}
-  | File {path; size} ->
-          Curl.set_infilesize curl size;
-          { encoding = Curl.CURLMIME_BINARY
-          ; headers = ["Content-Disposition: form-data; name=\"file\"; filename=\"" ^ name ^ "\""]
-          ; subparts = []
-          ; data = Curl.CURLMIME_FILEDATA path}
-
-let get_size {Api.Part.name; content} =
-  match content with
-  | Direct s ->
-    String.length s + String.length name
-  | File {size; _} ->
-    size * 100
-
-let get_total_size parts =
-  parts
-  |> List.map get_size
-  |> List.fold_left (+) 0
-  |> fun _ -> 4806
+    Curl.CURLFORM_CONTENT (name, s, Curl.DEFAULT)
+  | File {path; _} ->
+    Curl.CURLFORM_FILECONTENT (name, path, Curl.DEFAULT)
 
 let set_multipart curl parts =
   List.map (set_part curl) parts
-  |> Curl.set_mimepost curl
+  |> Curl.set_httppost curl
 
 let send_request_exn ~verify {Api.Request.url; header; method_; data} =
   Curl.global_init Curl.CURLINIT_GLOBALALL;
@@ -68,12 +48,13 @@ let send_request_exn ~verify {Api.Request.url; header; method_; data} =
         | Raw str ->
           Curl.set_postfields curl str
         | Multipart parts ->
-          let size = get_total_size parts in
-          Curl.set_postfieldsize curl size;
           set_multipart curl parts
   in
-  Curl.perform curl;
-  Lwt_result.return { Response.code = Curl.get_responsecode curl; response = response }
+  try
+      Curl.perform curl;
+      Lwt_result.return { Response.code = Curl.get_responsecode curl; response = response }
+  with Curl.CurlException (_, _, s) ->
+      Lwt_result.fail ("HTTP exception : " ^ s)
 
 let send_request ?(verify = true) request =
   send_request_exn ~verify request
