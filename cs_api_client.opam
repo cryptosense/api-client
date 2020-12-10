@@ -30,5 +30,6 @@ depends: [
   "terminal_size"
   "tls"
   "yojson"
+  "ocurl"
 ]
 synopsis: "Utilities for the Cryptosense API"
