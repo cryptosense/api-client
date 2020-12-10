@@ -15,9 +15,6 @@ depends: [
   "alcotest" {with-test}
   "base64"
   "dune" {>= "2.7.0"}
-  "cohttp"
-  "cohttp-lwt"
-  "cohttp-lwt-unix"
   "containers"
   "cmdliner"
   "hacl_x25519" {< "0.2.0"}
@@ -30,5 +27,6 @@ depends: [
   "terminal_size"
   "tls"
   "yojson"
+  "ocurl"
 ]
 synopsis: "Utilities for the Cryptosense API"

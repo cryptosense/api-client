@@ -24,7 +24,6 @@ let upload_trace
     ~api_key
     ~no_check_certificate =
   let open Lwt.Infix in
-  Conduit_lwt_unix.tls_library := OpenSSL;
   let verify = not no_check_certificate in
   let api = Api.make ~api_endpoint ~api_key in
   (let open Lwt_result.Infix in

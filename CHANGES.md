@@ -7,8 +7,11 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [2.0.0] - 2020-12-17
+
 ### Changed
 
+* Support of HTTP and SOCKS5 proxies thanks to libcurl.
 * Use Cryptosense v2 API to create traces.
 
 ## [1.0.0] - 2020-04-06
@@ -51,6 +54,7 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 Initial release.
 
 [Unreleased]: https://github.com/cryptosense/api-client/compare/1.0.0...HEAD
+[2.0.0]: https://github.com/cryptosense/api-client/compare/1.0.0...2.0.0
 [1.0.0]: https://github.com/cryptosense/api-client/compare/0.0.4...1.0.0
 [0.0.4]: https://github.com/cryptosense/api-client/compare/0.0.3...0.0.4
 [0.0.3]: https://github.com/cryptosense/api-client/compare/0.0.2...0.0.3
