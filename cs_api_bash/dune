@@ -1,0 +1,3 @@
+(library
+ (name cs_api_bash)
+)

@@ -1,66 +1,66 @@
 module Response = struct
     type t =
         { code : int
-        ; response : string ref
+        ; response : string
         }
 end
 
-let response_accumulator_factory () =
-    let resp = ref "" in
-    let resp_callback s =
-        resp := !resp ^ s;
-        String.length s
-    in
-    (resp, resp_callback)
+let curl_verify_certs = function
+  | true -> ""
+  | false -> "-k"
 
-let set_headers curl header =
-  Curl.set_httpheader
-    curl
-    (List.map
-        (fun (h, v) -> h ^ ": " ^ v)
-        header)
+let curl_http_method = function
+  | Api.Method.Get -> "-XGET"
+  | Post -> "-XPOST"
 
-let set_part _ {Api.Part.name; content} =
+let curl_header (h, v) =
+  "-H \"" ^ h ^ ": " ^ v ^ "\""
+
+let curl_url u = u
+
+let curl_post_data data =
+  "--data '" ^ data ^ "'"
+
+let curl_multipart {Api.Part.name; content} =
   match content with
   | Direct s ->
-    Curl.CURLFORM_CONTENT (name, s, Curl.DEFAULT)
+    "-F \"" ^ name ^ "=" ^ s ^ "\""
   | File {path; _} ->
-    Curl.CURLFORM_FILECONTENT (name, path, Curl.DEFAULT)
+    "-F \"file=@" ^ path ^ "\""
 
-let set_multipart curl parts =
-  List.map (set_part curl) parts
-  |> Curl.set_httppost curl
+let curl_suppress_output _ =
+    "--no-progress-meter"
+
+let add_argument arg cmd =
+  match arg with
+  | "" -> cmd
+  | _ -> cmd ^ " " ^ arg
 
 let send_request_exn ~verify {Api.Request.url; header; method_; data} =
-  Curl.global_init Curl.CURLINIT_GLOBALALL;
-  let curl = Curl.init () in
-  let response, response_callback = response_accumulator_factory () in
-  Curl.set_url curl url;
-  Curl.set_sslverifypeer curl verify;
-  Curl.set_writefunction curl response_callback;
-  set_headers curl header;
-  let _ =
-    match method_ with
-      | Get ->
-        Curl.set_httpget curl true
-      | Post ->
-        match data with
-        | Raw str ->
-          Curl.set_postfields curl str
-        | Multipart parts ->
-          set_multipart curl parts
-  in
-  try
-      Curl.perform curl;
-      Lwt_result.return { Response.code = Curl.get_responsecode curl; response = response }
-  with Curl.CurlException (_, _, s) ->
-      Lwt_result.fail ("HTTP exception : " ^ s)
+  "curl"
+  |> add_argument (curl_suppress_output ())
+  |> add_argument (curl_verify_certs verify)
+  |> add_argument (curl_http_method method_)
+  |> (fun c -> List.fold_left (fun acc h -> add_argument (curl_header h) acc) c header)
+  |> (fun c ->
+      match method_ with
+        | Get -> c
+        | Post ->
+          match data with
+          | Raw str -> add_argument (curl_post_data str) c
+          | Multipart parts ->
+            List.fold_left (fun acc p -> add_argument (curl_multipart p) acc) c parts)
+  |> add_argument (curl_url url)
+  |> (fun c -> print_endline ""; print_endline c; c)
+  |> Cs_api_bash.execute
+  |> (fun r -> print_endline "_____ RESPONSE"; print_endline r; print_endline ""; r)
+  |> (fun r -> Lwt_result.return {Response.code = 200; response = r})
 
 let send_request ?(verify = true) request =
   send_request_exn ~verify request
 
 let get_response {Response.code; response} =
   if code < 400 then
-    Lwt_result.return !response
+    Lwt_result.return response
   else
-    Lwt_result.fail !response
+    Lwt_result.fail response
