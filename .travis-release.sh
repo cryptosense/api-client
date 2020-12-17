@@ -6,8 +6,6 @@ set -o xtrace
 # Build package
 opam pin add --no-action .
 opam depext cs_api_client
-opam pin add ocaml-conduit
-opam pin add ocaml-cohttp
 opam install cs_api_client
 
 # Create archive

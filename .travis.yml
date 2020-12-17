@@ -8,7 +8,6 @@ env:
   global:
     - PACKAGE=cs_api_client
     - OCAML_VERSION=4.10
-    - PINS="conduit-lwt-unix:https://github.com/cryptosense/ocaml-conduit.git#2d26898b6102f3ee24152de217b2273ea4973b98"
   jobs:
     - DISTRO=debian-10
     - DISTRO=centos-7
