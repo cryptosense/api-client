@@ -40,11 +40,13 @@ If you are using self-signed certificates and want to upload anyway, use the
 
 #### HTTP Proxies
 
-If you need to route your request through a proxy, set the `http_proxy`
+If you need to route your request through a proxy, set the `http_proxy` or `https_proxy`
 environment variable to the URL of your proxy endpoint.
 
-For more advanced configuration, please refer to the `curl` documentation.
+Note that, for now, the `--no-check-certificate` option has no effect on the checking of
+the proxy certificate: it is always checked.
 
+For more advanced configuration, please refer to the `curl` documentation.
 
 ## Development
 

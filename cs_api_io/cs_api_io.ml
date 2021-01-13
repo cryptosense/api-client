@@ -28,6 +28,11 @@ let send_request_exn ~verify {Api.Request.url; header; method_; data} =
   let (response, response_callback) = response_accumulator_factory () in
   Curl.set_url curl url;
   Curl.set_sslverifypeer curl verify;
+  Curl.set_sslverifyhost curl
+    ( if verify then
+      SSLVERIFYHOST_HOSTNAME
+    else
+      SSLVERIFYHOST_NONE );
   Curl.set_writefunction curl response_callback;
   set_headers curl header;
   let _ =
@@ -42,16 +47,21 @@ let send_request_exn ~verify {Api.Request.url; header; method_; data} =
     Curl.perform curl;
     Lwt_result.return
       {Response.code = Curl.get_responsecode curl; body = !response}
-  with Curl.CurlException (_, _, s) ->
+  with Curl.CurlException (case, code, str) ->
     let message =
-      match s with
-      | "CURLE_URL_MALFORMAT" -> "Malformed URL"
-      | "CURLE_COULDNT_CONNECT" -> "Could not connect to host or proxy"
-      | "CURLE_OPERATION_TIMEDOUT" -> "Request timed out"
-      | "CURLE_SEND_ERROR" -> "Unable to send data to the network"
-      | "CURLE_RECV_ERROR" -> "Unable to receive data from the network"
-      | "CURLE_SSL_INVALIDCERTSTATUS" -> "SSL certificate could not be verified"
-      | _ -> "Unknown error: " ^ s
+      match case with
+      | CURLE_URL_MALFORMAT -> "Malformed URL"
+      | CURLE_COULDNT_RESOLVE_HOST -> "Could not resolve host"
+      | CURLE_COULDNT_RESOLVE_PROXY -> "Unable to resolve proxy host"
+      | CURLE_COULDNT_CONNECT -> "Could not connect to host or proxy"
+      | CURLE_SSL_CONNECT_ERROR -> "Failure in the TLS handshake"
+      | CURLE_OPERATION_TIMEOUTED -> "Request timed out"
+      | CURLE_SEND_ERROR -> "Unable to send data to the network"
+      | CURLE_RECV_ERROR -> "Unable to receive data from the network"
+      | CURLE_SSL_PEER_CERTIFICATE
+      | CURLE_SSL_CACERT ->
+        "Could not validate TLS certificate"
+      | _ -> Printf.sprintf "Unknown error: %s (%d)" str code
     in
     Lwt_result.fail ("HTTP error: " ^ message)
 
