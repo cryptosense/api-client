@@ -1,0 +1,26 @@
+name: main
+
+on:
+  - pull_request
+  - push
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-18.04
+        ocaml-version:
+          - 4.10.1
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use OCaml ${{ matrix.ocaml-version }}
+        uses: avsm/setup-ocaml@v1
+        with:
+          ocaml-version: ${{ matrix.ocaml-version }}
+      - run: opam pin add cs_api_client.dev . --no-action
+      - run: opam depext cs_api_client --yes --with-doc --with-test
+      - run: opam install . --deps-only --with-doc --with-test
+      - run: opam exec -- dune build @all @fmt @runtest
