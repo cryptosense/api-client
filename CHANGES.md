@@ -7,6 +7,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+_There are no unreleased changes at the moment._
+
+## [2.0.1] - 2021-01-13
+
 ### Fixed
 
 * Fix certificate checking bypass when `--no-check-certificate` is used.
