@@ -40,7 +40,7 @@ let upload_trace
             (Ok
                (Cs_api_core.build_file_upload_request ~s3_url ~s3_signature
                   ~file)))
-  >>= Cs_api_io.send_request ~verify
+  >>= Cs_api_io.send_request ~progress_bar:true ~verify
   >>= Cs_api_io.get_response
   >>= (fun body ->
         let s3_key = Cs_api_core.parse_s3_response ~body in

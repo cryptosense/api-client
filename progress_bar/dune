@@ -1,0 +1,3 @@
+(library
+ (name progress_bar)
+ (libraries stringext terminal_size))

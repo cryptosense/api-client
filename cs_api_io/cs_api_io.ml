@@ -4,6 +4,14 @@ module Response = struct
     ; body : string }
 end
 
+let progress_callback dl_total dl_now ul_total ul_now =
+  let dl_total = truncate dl_total in
+  let ul_total = truncate ul_total in
+  let dl_now = truncate dl_now in
+  let ul_now = truncate ul_now in
+  Progress_bar.display_progress_bar (dl_total + ul_total) (dl_now + ul_now);
+  false
+
 let response_accumulator_factory () =
   let resp = ref "" in
   let resp_callback s =
@@ -22,7 +30,10 @@ let set_part {Api.Part.name; content} =
 
 let set_multipart curl parts = List.map set_part parts |> Curl.set_httppost curl
 
-let send_request_exn ~verify {Api.Request.url; header; method_; data} =
+let send_request_exn
+    ~progress_bar
+    ~verify
+    {Api.Request.url; header; method_; data} =
   Curl.global_init Curl.CURLINIT_GLOBALALL;
   let curl = Curl.init () in
   let (response, response_callback) = response_accumulator_factory () in
@@ -35,6 +46,10 @@ let send_request_exn ~verify {Api.Request.url; header; method_; data} =
       SSLVERIFYHOST_NONE );
   Curl.set_writefunction curl response_callback;
   set_headers curl header;
+  let _ =
+    if progress_bar then Curl.set_noprogress curl false;
+    Curl.setopt curl (Curl.CURLOPT_PROGRESSFUNCTION progress_callback)
+  in
   let _ =
     match method_ with
     | Get -> Curl.set_httpget curl true
@@ -65,7 +80,8 @@ let send_request_exn ~verify {Api.Request.url; header; method_; data} =
     in
     Lwt_result.fail ("HTTP error: " ^ message)
 
-let send_request ?(verify = true) request = send_request_exn ~verify request
+let send_request ?(progress_bar = false) ?(verify = true) request =
+  send_request_exn ~progress_bar ~verify request
 
 let get_response {Response.code; body} =
   if code < 300 then
