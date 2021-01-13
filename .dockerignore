@@ -1,0 +1,7 @@
+**/.merlin
+**/_build
+
+.git
+.github
+docker
+make_release.bash

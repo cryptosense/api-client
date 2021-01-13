@@ -52,3 +52,12 @@ For more advanced configuration, please refer to the `curl` documentation.
 
 * Install the binary client from source: `dune build @install && dune install`
 * Run tests: `dune runtest`
+
+## Release
+
+* Create a tag:
+  * `git tag --message 'Version 1.2.3' 1.2.3`
+  * `git push --tags`
+* Create a release on GitHub for the new tag.
+* Run `./make_release.bash 1.2.3 .`
+* Upload `cs-api-1.2.3.tar.gz` to the GitHub release.
