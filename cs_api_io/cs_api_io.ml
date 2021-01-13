@@ -28,6 +28,11 @@ let send_request_exn ~verify {Api.Request.url; header; method_; data} =
   let (response, response_callback) = response_accumulator_factory () in
   Curl.set_url curl url;
   Curl.set_sslverifypeer curl verify;
+  Curl.set_sslverifyhost curl
+    ( if verify then
+      SSLVERIFYHOST_HOSTNAME
+    else
+      SSLVERIFYHOST_NONE );
   Curl.set_writefunction curl response_callback;
   set_headers curl header;
   let _ =
