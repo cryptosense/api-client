@@ -32,7 +32,7 @@ let request_builder_tests =
                   ; ("signature", "cde")
                   ; ("Content-Type", "")
                   ; ("x-amz-meta-filename", "path") ]
-              @ [ { name = "trace"
+              @ [ { name = "file"
                   ; content = File {path = "folder/path"; size = 10} } ] ) }
       ~actual:
         (Cs_api_core.build_file_upload_request ~s3_url:"url"

@@ -86,8 +86,7 @@ let build_file_upload_request ~s3_url ~s3_signature ~(file : Api.File.t) =
   { Api.Request.url = s3_url
   ; header = []
   ; method_ = Post
-  ; data = Multipart (direct_fields @ [{name = "trace"; content = File file}])
-  }
+  ; data = Multipart (direct_fields @ [{name = "file"; content = File file}]) }
 
 let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file =
   let {Api.endpoint; key} = api in
