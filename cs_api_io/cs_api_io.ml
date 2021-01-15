@@ -15,12 +15,13 @@ let response_accumulator_factory () =
 let set_headers curl header =
   Curl.set_httpheader curl (List.map (fun (h, v) -> h ^ ": " ^ v) header)
 
-let set_part {Api.Part.name; content} =
+let make_part {Api.Part.name; content} =
   match content with
-  | Direct s -> Curl.CURLFORM_CONTENT (name, s, Curl.DEFAULT)
-  | File {path; _} -> Curl.CURLFORM_FILECONTENT ("file", path, Curl.DEFAULT)
+  | Direct s -> Curl.CURLFORM_CONTENT (name, s, DEFAULT)
+  | File {path; _} -> Curl.CURLFORM_FILE (name, path, DEFAULT)
 
-let set_multipart curl parts = List.map set_part parts |> Curl.set_httppost curl
+let set_multipart curl parts =
+  parts |> List.map make_part |> Curl.set_httppost curl
 
 let send_request_exn ~verify {Api.Request.url; header; method_; data} =
   Curl.global_init Curl.CURLINIT_GLOBALALL;
