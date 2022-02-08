@@ -22,7 +22,7 @@ module Graphql = struct
 end
 
 let parse_s3_signature_request ~body =
-  let open CCOpt.Infix in
+  let open CCOption.Infix in
   let open Yojson.Basic.Util in
   let json = Yojson.Basic.from_string body in
   let data = json |> member "data" in

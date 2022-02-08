@@ -15,7 +15,7 @@ depends: [
   "alcotest" {with-test}
   "base64"
   "dune" {>= "2.7.0"}
-  "containers"
+  "containers" {>= "3.6"}
   "cmdliner"
   "hacl_x25519" {< "0.2.0"}
   "lwt"
