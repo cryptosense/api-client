@@ -79,9 +79,9 @@ let build_s3_signed_post_request ~api =
 let build_file_upload_request ~s3_url ~s3_signature ~(file : Api.File.t) =
   let direct_fields =
     Api.Data.multipart_from_assoc
-      ( s3_signature
+      (s3_signature
       @ [ ("Content-Type", "")
-        ; ("x-amz-meta-filename", Filename.basename file.path) ] )
+        ; ("x-amz-meta-filename", Filename.basename file.path) ])
   in
   { Api.Request.url = s3_url
   ; header = []

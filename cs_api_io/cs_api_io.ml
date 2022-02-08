@@ -30,10 +30,10 @@ let send_request_exn ~verify {Api.Request.url; header; method_; data} =
   Curl.set_url curl url;
   Curl.set_sslverifypeer curl verify;
   Curl.set_sslverifyhost curl
-    ( if verify then
+    (if verify then
       SSLVERIFYHOST_HOSTNAME
     else
-      SSLVERIFYHOST_NONE );
+      SSLVERIFYHOST_NONE);
   Curl.set_writefunction curl response_callback;
   set_headers curl header;
   let _ =
@@ -42,13 +42,14 @@ let send_request_exn ~verify {Api.Request.url; header; method_; data} =
     | Post -> (
       match data with
       | Raw str -> Curl.set_postfields curl str
-      | Multipart parts -> set_multipart curl parts )
+      | Multipart parts -> set_multipart curl parts)
   in
   try
     Curl.perform curl;
     Lwt_result.return
       {Response.code = Curl.get_responsecode curl; body = !response}
-  with Curl.CurlException (case, code, str) ->
+  with
+  | Curl.CurlException (case, code, str) ->
     let message =
       match case with
       | CURLE_URL_MALFORMAT -> "Malformed URL"

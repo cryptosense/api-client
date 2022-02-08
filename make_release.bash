@@ -16,7 +16,7 @@ main() {
 
     docker build \
       --build-arg DISTRIB=centos-7 \
-      --build-arg OCAML_VERSION=4.10 \
+      --build-arg OCAML_VERSION=4.13.1 \
       --build-arg VERSION=$version \
       --tag "$image_tag" \
       .

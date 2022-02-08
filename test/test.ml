@@ -27,13 +27,13 @@ let request_builder_tests =
         ; method_ = Post
         ; data =
             Multipart
-              ( Api.Data.multipart_from_assoc
-                  [ ("key", "abc")
-                  ; ("signature", "cde")
-                  ; ("Content-Type", "")
-                  ; ("x-amz-meta-filename", "path") ]
+              (Api.Data.multipart_from_assoc
+                 [ ("key", "abc")
+                 ; ("signature", "cde")
+                 ; ("Content-Type", "")
+                 ; ("x-amz-meta-filename", "path") ]
               @ [ { name = "file"
-                  ; content = File {path = "folder/path"; size = 10} } ] ) }
+                  ; content = File {path = "folder/path"; size = 10} } ]) }
       ~actual:
         (Cs_api_core.build_file_upload_request ~s3_url:"url"
            ~s3_signature:[("key", "abc"); ("signature", "cde")]

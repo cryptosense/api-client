@@ -22,7 +22,7 @@ depends: [
   "lwt_ppx"
   "lwt_ssl"
   "ocaml" {>= "4.04.0"}
-  "ocamlformat" {= "0.15.0" & with-test}
+  "ocamlformat" {= "0.19.0" & with-test}
   "ppx_deriving"
   "stringext"
   "terminal_size"
