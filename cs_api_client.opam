@@ -14,20 +14,21 @@ run-test: [
 depends: [
   "alcotest" {with-test}
   "base64"
-  "dune" {>= "2.7.0"}
+  "cmdliner" {= "1.0.4"}
   "containers" {>= "3.6"}
-  "cmdliner"
+  "dune" {>= "2.7.0"}
   "hacl_x25519" {< "0.2.0"}
   "lwt"
   "lwt_ppx"
   "lwt_ssl"
   "ocaml" {>= "4.04.0"}
   "ocamlformat" {= "0.19.0" & with-test}
+  "ocurl" {< "0.9.2"}  # For compilation with old libcurl
   "ppx_deriving"
+  "ssl" {= "0.5.9"}  # For compilation with OpenSSL < 1.1.0
   "stringext"
   "terminal_size"
   "tls"
   "yojson"
-  "ocurl"
 ]
 synopsis: "Utilities for the Cryptosense API"
