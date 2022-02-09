@@ -16,10 +16,30 @@ let get_file path =
       | _ ->
         Lwt_result.fail ("Could not read file " ^ path ^ " for unknown reasons"))
 
+let resolve_project_name ~api ~verify ~project_id ~project_name =
+  (* The user can provide an ID or a name. If a name is provided, look for the
+     corresponding ID. Otherwise, just return the given ID. *)
+  let open Lwt_result.Infix in
+  match (project_id, project_name) with
+  | (None, None)
+  | (Some _, Some _) ->
+    Lwt_result.fail "Exactly one of project ID or name must be provided."
+  | (Some id, None) -> Lwt_result.return id
+  | (None, Some name) -> (
+    Cs_api_core.build_list_projects_request ~api
+    |> Cs_api_io.send_request ~verify
+    >>= Cs_api_io.get_response
+    >>= fun body ->
+    let projects = Cs_api_core.parse_list_projects_response ~body in
+    match CCList.Assoc.get ~eq:String.equal name projects with
+    | None -> Lwt_result.fail (Printf.sprintf "Project name not found: %s" name)
+    | Some id -> Lwt_result.return id)
+
 let upload_trace
     ~trace_file
     ~trace_name
     ~project_id
+    ~project_name
     ~api_endpoint
     ~api_key
     ~no_check_certificate =
@@ -28,6 +48,8 @@ let upload_trace
   let api = Api.make ~api_endpoint ~api_key in
   (let open Lwt_result.Infix in
   get_file trace_file >>= fun file ->
+  resolve_project_name ~api ~verify ~project_id ~project_name
+  >>= fun project_id ->
   Cs_api_core.build_s3_signed_post_request ~api
   |> Cs_api_io.send_request ~verify
   >>= Cs_api_io.get_response
@@ -73,8 +95,18 @@ let trace_name =
     & info ["n"; "trace-name"] ~docv:"TRACENAME" ~doc)
 
 let project_id =
-  let doc = "ID of the project to which the trace should be added" in
-  Cmdliner.Arg.(required & opt (some int) None & info ["p"; "project-id"] ~doc)
+  let doc =
+    "ID of the project to which the trace should be added. Mutually exclusive \
+     with --project-name."
+  in
+  Cmdliner.Arg.(value & opt (some int) None & info ["p"; "project-id"] ~doc)
+
+let project_name =
+  let doc =
+    "Name of the project to which the trace should be added. Mutually \
+     exclusive with --project-id."
+  in
+  Cmdliner.Arg.(value & opt (some string) None & info ["project-name"] ~doc)
 
 let api_endpoint =
   let doc = "Base URL of the API server." in
@@ -104,11 +136,12 @@ let upload_trace_main
     trace_file
     trace_name
     project_id
+    project_name
     api_endpoint
     api_key
     no_check_certificate =
-  upload_trace ~trace_file ~trace_name ~project_id ~api_endpoint ~api_key
-    ~no_check_certificate
+  upload_trace ~trace_file ~trace_name ~project_id ~project_name ~api_endpoint
+    ~api_key ~no_check_certificate
   |> Lwt_main.run
 
 let upload_trace_term =
@@ -117,6 +150,7 @@ let upload_trace_term =
     $ trace_file
     $ trace_name
     $ project_id
+    $ project_name
     $ api_endpoint
     $ api_key
     $ no_check_certificate)
