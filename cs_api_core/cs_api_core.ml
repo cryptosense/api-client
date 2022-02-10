@@ -22,7 +22,7 @@ module Graphql = struct
 end
 
 let parse_s3_signature_request ~body =
-  let open CCOpt.Infix in
+  let open CCOption.Infix in
   let open Yojson.Basic.Util in
   let json = Yojson.Basic.from_string body in
   let data = json |> member "data" in
@@ -79,9 +79,9 @@ let build_s3_signed_post_request ~api =
 let build_file_upload_request ~s3_url ~s3_signature ~(file : Api.File.t) =
   let direct_fields =
     Api.Data.multipart_from_assoc
-      ( s3_signature
+      (s3_signature
       @ [ ("Content-Type", "")
-        ; ("x-amz-meta-filename", Filename.basename file.path) ] )
+        ; ("x-amz-meta-filename", Filename.basename file.path) ])
   in
   { Api.Request.url = s3_url
   ; header = []

@@ -60,7 +60,7 @@ let accumulator =
         [ ("Content-Type", "multipart/form-data; boundary=" ^ separator)
         ; ("Content-Length", "115") ]
       ~expected_body:
-        ( "--"
+        ("--"
         ^ separator
         ^ "\r\n"
         ^ "Content-Disposition: form-data; name=\"key\""
@@ -72,7 +72,7 @@ let accumulator =
         ^ "--"
         ^ separator
         ^ "--"
-        ^ "\r\n" )
+        ^ "\r\n")
   ; test_fail ~name:"Missing file"
       ~input:[File ("missing_file", "/this/file/does/not/exist")]
       ~expected_error:"File /this/file/does/not/exist not found" ]
