@@ -2,6 +2,15 @@ module Graphql = struct
   let to_global_id ~type_ ~id =
     Printf.sprintf "%s:%d" type_ id |> Base64.encode |> Result.get_ok
 
+  let of_global_id ~type_ global_id =
+    global_id
+    |> Base64.decode
+    |> Result.get_ok
+    |> CCString.chop_prefix ~pre:(Printf.sprintf "%s:" type_)
+    |> CCOption.get_exn_or
+         (Printf.sprintf "Invalid global ID prefix for type %s" type_)
+    |> int_of_string
+
   let create_trace =
     {|
       mutation CreateTrace($projectId: ID!, $name: String!, $key: String!, $size: Int!) {
@@ -19,7 +28,53 @@ module Graphql = struct
         }
       }
     |}
+
+  let list_projects =
+    {|
+      query ListProjects {
+        viewer {
+          organization {
+            projects {
+              edges {
+                node {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    |}
 end
+
+let build_list_projects_request ~api =
+  let {Api.endpoint; key} = api in
+  { Api.Request.url = endpoint ^ "/api/v2"
+  ; header = [("API-KEY", key); ("Content-Type", "application/json")]
+  ; method_ = Post
+  ; data =
+      Raw
+        (Yojson.Safe.to_string
+           (`Assoc [("query", `String Graphql.list_projects)])) }
+
+let parse_list_projects_response ~body =
+  let open Yojson.Basic.Util in
+  let json = Yojson.Basic.from_string body in
+  json
+  |> member "data"
+  |> member "viewer"
+  |> member "organization"
+  |> member "projects"
+  |> member "edges"
+  |> to_list
+  |> CCList.map (fun edge ->
+         let node = edge |> member "node" in
+         ( node |> member "name" |> to_string
+         , node
+           |> member "id"
+           |> to_string
+           |> Graphql.of_global_id ~type_:"Project" ))
 
 let parse_s3_signature_request ~body =
   let open CCOption.Infix in

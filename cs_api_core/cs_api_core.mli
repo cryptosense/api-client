@@ -13,6 +13,10 @@ val parse_s3_response : body:string -> string
 val build_s3_signed_post_request : api:Api.t -> Api.Request.t
 (** Request building functions **)
 
+val build_list_projects_request : api:Api.t -> Api.Request.t
+
+val parse_list_projects_response : body:string -> (string * int) list
+
 val build_file_upload_request :
      s3_url:string
   -> s3_signature:Api.S3Signature.t
