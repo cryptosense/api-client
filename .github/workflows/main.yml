@@ -21,6 +21,6 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
       - run: opam pin add cs_api_client.dev . --no-action
-      - run: opam depext cs_api_client --yes --with-doc --with-test
-      - run: opam install . --deps-only --with-doc --with-test
+      - run: opam depext cs_api_client --yes --with-test
+      - run: opam install . --deps-only --with-test
       - run: opam exec -- dune build @all @fmt @runtest
