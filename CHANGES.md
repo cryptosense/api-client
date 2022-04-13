@@ -9,6 +9,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 _There are no unreleased changes at the moment._
 
+## [2.1.0] - 2021-04-13
+
+### Added
+
+* Add `--project-name` command-line argument.
+
 ## [2.0.2] - 2021-01-15
 
 ### Fixed
