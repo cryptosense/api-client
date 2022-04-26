@@ -16,7 +16,7 @@ let get_file path =
       | _ ->
         Lwt_result.fail ("Could not read file " ^ path ^ " for unknown reasons"))
 
-let resolve_project_name ~api ~verify ~project_id ~project_name =
+let resolve_project_name ~api ~config ~project_id ~project_name =
   (* The user can provide an ID or a name. If a name is provided, look for the
      corresponding ID. Otherwise, just return the given ID. *)
   let open Lwt_result.Infix in
@@ -27,7 +27,7 @@ let resolve_project_name ~api ~verify ~project_id ~project_name =
   | (Some id, None) -> Lwt_result.return id
   | (None, Some name) -> (
     Cs_api_core.build_list_projects_request ~api
-    |> Cs_api_io.send_request ~verify
+    |> Cs_api_io.send_request ~config
     >>= Cs_api_io.get_response
     >>= fun body ->
     let projects = Cs_api_core.parse_list_projects_response ~body in
@@ -42,16 +42,17 @@ let upload_trace
     ~project_name
     ~api_endpoint
     ~api_key
+    ~ca_file
     ~no_check_certificate =
   let open Lwt.Infix in
-  let verify = not no_check_certificate in
+  let config = {Cs_api_io.Config.verify = not no_check_certificate; ca_file} in
   let api = Api.make ~api_endpoint ~api_key in
   (let open Lwt_result.Infix in
   get_file trace_file >>= fun file ->
-  resolve_project_name ~api ~verify ~project_id ~project_name
+  resolve_project_name ~api ~config ~project_id ~project_name
   >>= fun project_id ->
   Cs_api_core.build_s3_signed_post_request ~api
-  |> Cs_api_io.send_request ~verify
+  |> Cs_api_io.send_request ~config
   >>= Cs_api_io.get_response
   >>= (fun body ->
         match Cs_api_core.parse_s3_signature_request ~body with
@@ -62,7 +63,7 @@ let upload_trace
             (Ok
                (Cs_api_core.build_file_upload_request ~s3_url ~s3_signature
                   ~file)))
-  >>= Cs_api_io.send_request ~verify
+  >>= Cs_api_io.send_request ~config
   >>= Cs_api_io.get_response
   >>= (fun body ->
         let s3_key = Cs_api_core.parse_s3_response ~body in
@@ -71,7 +72,7 @@ let upload_trace
             ~trace_name ~file
         in
         Lwt.return (Ok import_request))
-  >>= Cs_api_io.send_request ~verify
+  >>= Cs_api_io.send_request ~config
   >>= Cs_api_io.get_response
   >|= fun _ -> Printf.printf "Trace uploaded\n")
   >|= function
@@ -125,10 +126,20 @@ let api_key =
   Cmdliner.Arg.(
     value & opt string "" & info ["k"; "api-key"] ~env ~docv:"API_KEY" ~doc)
 
+let ca_file =
+  let doc =
+    "Path to a file containing PEM encoded certificates to be trusted, to \
+     override the default CA file. This has no effect if certificate checking \
+     is disabled (it is enabled by default)."
+  in
+  Cmdliner.Arg.(
+    value & opt (some non_dir_file) None & info ["ca-file"] ~docv:"CA_FILE" ~doc)
+
 let no_check_certificate =
   let doc =
-    "Don't check remote certificates.  This is useful for when the platform is \
-     installed on-premises with self-signed certificates"
+    "Don't check remote certificates. This is useful for when the platform is \
+     installed on-premises with self-signed certificates. For security, \
+     certificate checking is enabled by default."
   in
   Cmdliner.Arg.(value & flag & info ~doc ["no-check-certificate"])
 
@@ -139,9 +150,10 @@ let upload_trace_main
     project_name
     api_endpoint
     api_key
+    ca_file
     no_check_certificate =
   upload_trace ~trace_file ~trace_name ~project_id ~project_name ~api_endpoint
-    ~api_key ~no_check_certificate
+    ~api_key ~ca_file ~no_check_certificate
   |> Lwt_main.run
 
 let upload_trace_term =
@@ -153,6 +165,7 @@ let upload_trace_term =
     $ project_name
     $ api_endpoint
     $ api_key
+    $ ca_file
     $ no_check_certificate)
 
 let upload_trace_info =

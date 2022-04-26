@@ -35,8 +35,8 @@ In the web interface, select your project by clicking it and copy the number aft
 
 Use the `--api-base-url` parameter to point the CLI at your local instance.
 
-If you are using self-signed certificates and want to upload anyway, use the
-`--no-check-certificate` option.
+If you are using self-signed certificates or a custom CA, you can provide a custom CA file
+with the `--ca-file path/to/cabundle.pem` option.
 
 #### HTTP Proxies
 
