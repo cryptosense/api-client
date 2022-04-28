@@ -1,3 +1,9 @@
+module Config = struct
+  type t =
+    { verify : bool
+    ; ca_file : string option }
+end
+
 module Response = struct
   type t =
     { code : int
@@ -23,17 +29,20 @@ let make_part {Api.Part.name; content} =
 let set_multipart curl parts =
   parts |> List.map make_part |> Curl.set_httppost curl
 
-let send_request_exn ~verify {Api.Request.url; header; method_; data} =
+let send_request_exn
+    ~(config : Config.t)
+    {Api.Request.url; header; method_; data} =
   Curl.global_init Curl.CURLINIT_GLOBALALL;
   let curl = Curl.init () in
   let (response, response_callback) = response_accumulator_factory () in
   Curl.set_url curl url;
-  Curl.set_sslverifypeer curl verify;
+  Curl.set_sslverifypeer curl config.verify;
   Curl.set_sslverifyhost curl
-    (if verify then
+    (if config.verify then
       SSLVERIFYHOST_HOSTNAME
     else
       SSLVERIFYHOST_NONE);
+  config.ca_file |> Option.iter (fun ca_file -> Curl.set_cainfo curl ca_file);
   Curl.set_writefunction curl response_callback;
   set_headers curl header;
   let _ =
@@ -67,7 +76,7 @@ let send_request_exn ~verify {Api.Request.url; header; method_; data} =
     in
     Lwt_result.fail ("HTTP error: " ^ message)
 
-let send_request ?(verify = true) request = send_request_exn ~verify request
+let send_request ~config request = send_request_exn ~config request
 
 let get_response {Response.code; body} =
   if code < 300 then

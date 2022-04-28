@@ -21,7 +21,7 @@ depends: [
   "lwt"
   "lwt_ppx"
   "lwt_ssl"
-  "ocaml" {>= "4.04.0"}
+  "ocaml" {>= "4.13.0"}
   "ocamlformat" {= "0.19.0" & with-test}
   "ocurl" {< "0.9.2"}  # For compilation with old libcurl
   "ppx_deriving"
