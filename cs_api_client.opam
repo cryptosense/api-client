@@ -27,7 +27,7 @@ depends: [
   "ppx_deriving"
   "ssl" {= "0.5.9"}  # For compilation with OpenSSL < 1.1.0
   "stringext"
-  "terminal_size"
+  "terminal_size" {>= "0.2.0"}  # For compilation on Windows
   "tls"
   "yojson"
 ]

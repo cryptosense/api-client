@@ -7,9 +7,11 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-18.04
+          - windows-latest
         ocaml-compiler:
           - 4.13.x
     runs-on: ${{ matrix.os }}
@@ -17,10 +19,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        if: runner.os != 'Windows'
         uses: ocaml/setup-ocaml@v2
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
+      - name: Use OCaml ${{ matrix.ocaml-compiler }}
+        if: runner.os == 'Windows'
+        uses: ocaml/setup-ocaml@v2
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          opam-repositories: |
+            default: 'https://github.com/fdopen/opam-repository-mingw.git#opam2'
+            upstream: 'https://github.com/ocaml/opam-repository.git'
       - run: opam pin add cs_api_client.dev . --no-action
-      - run: opam depext cs_api_client --yes --with-doc --with-test
-      - run: opam install . --deps-only --with-doc --with-test
+      - run: opam depext cs_api_client --yes --with-test
+      - run: opam install . --deps-only --with-test
       - run: opam exec -- dune build @all @fmt @runtest
