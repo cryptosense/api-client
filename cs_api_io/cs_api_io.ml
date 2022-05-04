@@ -29,11 +29,10 @@ let make_part {Api.Part.name; content} =
 let set_multipart curl parts =
   parts |> List.map make_part |> Curl.set_httppost curl
 
-let send_request_exn
+let send_request_raw
+    ~curl
     ~(config : Config.t)
     {Api.Request.url; header; method_; data} =
-  Curl.global_init Curl.CURLINIT_GLOBALALL;
-  let curl = Curl.init () in
   let (response, response_callback) = response_accumulator_factory () in
   Curl.set_url curl url;
   Curl.set_sslverifypeer curl config.verify;
@@ -53,30 +52,23 @@ let send_request_exn
       | Raw str -> Curl.set_postfields curl str
       | Multipart parts -> set_multipart curl parts)
   in
+  let error_message = ref "" (* This string will be replaced by `Curl`. *) in
+  Curl.setopt curl (Curl.CURLOPT_ERRORBUFFER error_message);
   try
     Curl.perform curl;
     Lwt_result.return
       {Response.code = Curl.get_responsecode curl; body = !response}
   with
-  | Curl.CurlException (case, code, str) ->
-    let message =
-      match case with
-      | CURLE_URL_MALFORMAT -> "Malformed URL"
-      | CURLE_COULDNT_RESOLVE_HOST -> "Could not resolve host"
-      | CURLE_COULDNT_RESOLVE_PROXY -> "Unable to resolve proxy host"
-      | CURLE_COULDNT_CONNECT -> "Could not connect to host or proxy"
-      | CURLE_SSL_CONNECT_ERROR -> "Failure in the TLS handshake"
-      | CURLE_OPERATION_TIMEOUTED -> "Request timed out"
-      | CURLE_SEND_ERROR -> "Unable to send data to the network"
-      | CURLE_RECV_ERROR -> "Unable to receive data from the network"
-      | CURLE_SSL_PEER_CERTIFICATE
-      | CURLE_SSL_CACERT ->
-        "Could not validate TLS certificate"
-      | _ -> Printf.sprintf "Unknown error: %s (%d)" str code
-    in
-    Lwt_result.fail ("HTTP error: " ^ message)
+  | Curl.CurlException (_, _, error_name) ->
+    Lwt_result.fail
+      (Printf.sprintf "HTTP error (%s): %s" error_name !error_message)
 
-let send_request ~config request = send_request_exn ~config request
+let send_request ~config request =
+  Curl.global_init Curl.CURLINIT_GLOBALALL;
+  let curl = Curl.init () in
+  Fun.protect
+    (fun () -> send_request_raw ~curl ~config request)
+    ~finally:(fun () -> Curl.cleanup curl)
 
 let get_response {Response.code; body} =
   if code < 300 then
