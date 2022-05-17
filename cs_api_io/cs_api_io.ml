@@ -10,6 +10,16 @@ module Response = struct
     ; body : string }
 end
 
+type t =
+  { config : Config.t
+  ; curl : Curl.t }
+
+let with_client ~config ~f =
+  let curl = Curl.init () in
+  Fun.protect
+    (fun () -> f {config; curl})
+    ~finally:(fun () -> Curl.cleanup curl)
+
 let response_accumulator_factory () =
   let resp = ref "" in
   let resp_callback s =
@@ -29,10 +39,8 @@ let make_part {Api.Part.name; content} =
 let set_multipart curl parts =
   parts |> List.map make_part |> Curl.set_httppost curl
 
-let send_request_raw
-    ~curl
-    ~(config : Config.t)
-    {Api.Request.url; header; method_; data} =
+let send_request ~client:{config; curl} {Api.Request.url; header; method_; data}
+    =
   let (response, response_callback) = response_accumulator_factory () in
   Curl.set_url curl url;
   Curl.set_sslverifypeer curl config.verify;
@@ -62,13 +70,6 @@ let send_request_raw
   | Curl.CurlException (_, _, error_name) ->
     Lwt_result.fail
       (Printf.sprintf "HTTP error (%s): %s" error_name !error_message)
-
-let send_request ~config request =
-  Curl.global_init Curl.CURLINIT_GLOBALALL;
-  let curl = Curl.init () in
-  Fun.protect
-    (fun () -> send_request_raw ~curl ~config request)
-    ~finally:(fun () -> Curl.cleanup curl)
 
 let get_response {Response.code; body} =
   if code < 300 then
