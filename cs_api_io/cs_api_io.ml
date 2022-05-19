@@ -77,3 +77,33 @@ let get_response {Response.code; body} =
   else
     let message = Printf.sprintf "HTTP response: %d\n%s" code body in
     Lwt_result.fail message
+
+let get_graphql_errors (json : Yojson.Safe.t) =
+  (match json with
+  | `Assoc _ -> (Some (Yojson.Safe.Util.member "errors" json), [])
+  | _ -> (None, ["Unexpected response from the server"]))
+  |> function
+  | (None, errors) -> errors
+  | (Some `Null, _) -> []
+  | (Some errors_json, _) -> (
+    match errors_json with
+    | `List error_list ->
+      error_list
+      |> CCList.map (Yojson.Safe.Util.member "message")
+      |> CCList.map (function
+           | `String error_message -> error_message
+           | _ -> "Unexpected response from the server")
+    | _ -> ["Unexpected response from the server"])
+
+let get_response_graphql {Response.code; body} =
+  if code < 300 then
+    try
+      let json = Yojson.Safe.from_string body in
+      match get_graphql_errors json with
+      | [] -> Lwt_result.return body
+      | errors -> CCString.concat "\n" errors |> Lwt_result.fail
+    with
+    | _ -> Lwt_result.return body
+  else
+    let message = Printf.sprintf "HTTP response: %d\n%s" code body in
+    Lwt_result.fail message

@@ -28,7 +28,7 @@ let resolve_project_name ~client ~api ~project_id ~project_name =
   | (None, Some name) -> (
     Cs_api_core.build_list_projects_request ~api
     |> Cs_api_io.send_request ~client
-    >>= Cs_api_io.get_response
+    >>= Cs_api_io.get_response_graphql
     >>= fun body ->
     let projects = Cs_api_core.parse_list_projects_response ~body in
     match CCList.Assoc.get ~eq:String.equal name projects with
@@ -51,7 +51,7 @@ let upload_trace
   >>= fun project_id ->
   Cs_api_core.build_s3_signed_post_request ~api
   |> Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response
+  >>= Cs_api_io.get_response_graphql
   >>= (fun body ->
         match Cs_api_core.parse_s3_signature_request ~body with
         | None ->
@@ -71,13 +71,14 @@ let upload_trace
         in
         Lwt.return (Ok import_request))
   >>= Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response
-  >|= fun _ -> Printf.printf "Trace uploaded\n")
+  >>= Cs_api_io.get_response_graphql)
   >|= function
-  | Ok _ as ok -> ok
+  | Ok _ ->
+    Printf.printf "Trace uploaded\n";
+    0
   | Error message ->
     Printf.printf "%s\n" message;
-    Error ()
+    1
 
 let trace_file =
   let doc = "Path to the file containing the trace" in
@@ -188,4 +189,5 @@ let default_info = Cmdliner.Term.info "cs-api" ~version:"%%VERSION_NUM%%"
 let default_cmd = (default_term, default_info)
 
 let () =
-  Cmdliner.Term.eval_choice default_cmd [upload_trace_cmd] |> Cmdliner.Term.exit
+  Cmdliner.Term.eval_choice default_cmd [upload_trace_cmd]
+  |> Cmdliner.Term.exit_status

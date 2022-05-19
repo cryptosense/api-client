@@ -64,4 +64,5 @@ let request_builder_tests =
 let () =
   Alcotest.run "API Client"
     [ ("Request builders", request_builder_tests)
-    ; ("Multipart writer", Test_writer.accumulator) ]
+    ; ("Multipart writer", Test_writer.accumulator)
+    ; ("Graphql errors parsing", Test_api_io.tests) ]
