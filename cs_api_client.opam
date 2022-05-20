@@ -3,7 +3,7 @@ maintainer: ["Cryptosense <opensource@cryptosense.com>"]
 authors: ["Cryptosense <opensource@cryptosense.com>"]
 homepage: "https://github.com/cryptosense/api-client"
 bug-reports: "https://github.com/cryptosense/api-client/issues"
-license: "BSD-2"
+license: "BSD-2-Clause"
 build: [
   ["dune" "subst"] {pinned}
   ["dune" "build" "-p" name "-j" jobs]
