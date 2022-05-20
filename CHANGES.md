@@ -9,6 +9,20 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 _There are no unreleased changes at the moment._
 
+## [2.2.0] - 2022-05-20
+
+### Fixed
+
+* Fix exit code and error message for several error cases (project not found, trace name
+  already taken, etc).
+* Improve error message when certificate validation fails.
+* Initialize libcurl only once per run instead of once per request.
+
+### Added
+
+* Add `--ca-file` option to choose trusted CAs.
+* Add support for Windows.
+
 ## [2.1.0] - 2021-04-13
 
 ### Added
@@ -74,7 +88,9 @@ _There are no unreleased changes at the moment._
 
 Initial release.
 
-[Unreleased]: https://github.com/cryptosense/api-client/compare/2.0.2...HEAD
+[Unreleased]: https://github.com/cryptosense/api-client/compare/2.2.0...HEAD
+[2.2.0]: https://github.com/cryptosense/api-client/compare/2.1.0...2.2.0
+[2.1.0]: https://github.com/cryptosense/api-client/compare/2.0.2...2.1.0
 [2.0.2]: https://github.com/cryptosense/api-client/compare/2.0.1...2.0.2
 [2.0.1]: https://github.com/cryptosense/api-client/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/cryptosense/api-client/compare/1.0.0...2.0.0
