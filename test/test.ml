@@ -59,7 +59,39 @@ let request_builder_tests =
                          ; ("size", `Int 10) ] ) ])) }
       ~actual:
         (Cs_api_core.build_trace_import_request ~api ~project_id:9 ~s3_key:"abc"
-           ~trace_name:"cde" ~file:{path = "path"; size = 10}) ]
+           ~trace_name:"cde" ~file:{path = "path"; size = 10})
+  ; test_request ~name:"Trace analysis request"
+      ~expected:
+        { url = "endpoint/api/v2"
+        ; header = [("API-KEY", "KEY"); ("Content-Type", "application/json")]
+        ; method_ = Post
+        ; data =
+            Raw
+              (Yojson.Safe.to_string
+                 (`Assoc
+                   [ ("query", `String Cs_api_core.Graphql.analyze_trace)
+                   ; ( "variables"
+                     , `Assoc
+                         [ ( "traceId"
+                           , `String
+                               (Cs_api_core.Graphql.to_global_id ~type_:"Trace"
+                                  ~id:9) )
+                         ; ( "profileId"
+                           , `String
+                               (Cs_api_core.Graphql.to_global_id
+                                  ~type_:"Profile" ~id:2) ) ] ) ])) }
+      ~actual:(Cs_api_core.build_analyze_request ~api ~trace_id:9 ~profile_id:2)
+  ; test_request ~name:"List profiles request"
+      ~expected:
+        { Api.Request.url = "endpoint/api/v2"
+        ; header = [("API-KEY", "KEY"); ("Content-Type", "application/json")]
+        ; method_ = Post
+        ; data =
+            Raw
+              (Yojson.Safe.to_string
+                 (`Assoc [("query", `String Cs_api_core.Graphql.list_profiles)]))
+        }
+      ~actual:(Cs_api_core.build_list_profiles_request ~api) ]
 
 let () =
   Alcotest.run "API Client"
