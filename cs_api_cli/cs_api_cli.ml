@@ -26,14 +26,34 @@ let resolve_project_name ~client ~api ~project_id ~project_name =
     Lwt_result.fail "Exactly one of project ID or name must be provided."
   | (Some id, None) -> Lwt_result.return id
   | (None, Some name) -> (
-    Cs_api_core.build_list_projects_request ~api
+    Cs_api_core.build_search_project_by_name_request ~api ~name
     |> Cs_api_io.send_request ~client
     >>= Cs_api_io.get_response_graphql
     >>= fun body ->
-    let projects = Cs_api_core.parse_list_projects_response ~body in
-    match CCList.Assoc.get ~eq:String.equal name projects with
+    Cs_api_core.parse_search_project_by_name_response ~body |> function
     | None -> Lwt_result.fail (Printf.sprintf "Project name not found: %s" name)
     | Some id -> Lwt_result.return id)
+
+let rec analyze_trace ~client ~trace_id ~api ~count profile_id =
+  let open Lwt.Infix in
+  (let open Lwt_result.Infix in
+  Cs_api_core.build_analyze_request ~api ~trace_id ~profile_id
+  |> Cs_api_io.send_request ~client
+  >>= Cs_api_io.get_response_graphql)
+  >>= function
+  | Error "Not found" ->
+    Printf.printf "Profile ID not found\n";
+    Lwt.return 1
+  | Error "This trace is still being processed" when count > 1 ->
+    Unix.sleep 5;
+    analyze_trace ~client ~trace_id ~api ~count:(count - 1) profile_id
+  | Error message ->
+    Printf.printf "%s\n" message;
+    Lwt.return 1
+  | Ok body ->
+    let (name, id) = Cs_api_core.get_info_from_analyze_response_body ~body in
+    Printf.printf "Report '%s' of ID %i is being generated\n" name id;
+    Lwt.return 0
 
 let upload_trace
     ~client
@@ -41,10 +61,9 @@ let upload_trace
     ~trace_name
     ~project_id
     ~project_name
-    ~api_endpoint
-    ~api_key =
+    ~analyze
+    ~api =
   let open Lwt.Infix in
-  let api = Api.make ~api_endpoint ~api_key in
   (let open Lwt_result.Infix in
   get_file trace_file >>= fun file ->
   resolve_project_name ~client ~api ~project_id ~project_name
@@ -72,13 +91,35 @@ let upload_trace
         Lwt.return (Ok import_request))
   >>= Cs_api_io.send_request ~client
   >>= Cs_api_io.get_response_graphql)
+  >>= function
+  | Ok body ->
+    let trace_id = Cs_api_core.get_id_from_trace_import_response_body ~body in
+    Printf.printf "Trace %i uploaded\n%!" trace_id;
+    analyze
+    |> CCOption.map_or ~default:(Lwt.return 0)
+         (Unix.sleep 5;
+          analyze_trace ~client ~trace_id ~api ~count:12)
+  | Error message ->
+    Printf.printf "%s\n" message;
+    Lwt.return 1
+
+let list_profiles ~client ~api =
+  let open Lwt.Infix in
+  (let open Lwt_result.Infix in
+  Cs_api_core.build_list_profiles_request ~api
+  |> Cs_api_io.send_request ~client
+  >>= Cs_api_io.get_response_graphql
+  >|= fun body -> Cs_api_core.parse_list_profiles_response ~body)
   >|= function
-  | Ok _ ->
-    Printf.printf "Trace uploaded\n";
-    0
   | Error message ->
     Printf.printf "%s\n" message;
     1
+  | Ok profile_list ->
+    CCList.iter
+      (fun (name, id, _type) ->
+        Printf.printf "Profile %s of ID %i used for %s traces\n" name id _type)
+      profile_list;
+    0
 
 let trace_file =
   let doc = "Path to the file containing the trace" in
@@ -86,6 +127,10 @@ let trace_file =
     required
     & opt (some non_dir_file) None
     & info ["f"; "trace-file"] ~docv:"TRACEFILE" ~doc)
+
+let trace_id =
+  let doc = "ID of the trace to analyze" in
+  Cmdliner.Arg.(required & opt (some int) None & info ["trace-id"] ~doc)
 
 let trace_name =
   let doc = "Name of the trace" in
@@ -107,6 +152,20 @@ let project_name =
      exclusive with --project-id."
   in
   Cmdliner.Arg.(value & opt (some string) None & info ["project-name"] ~doc)
+
+let profile_id =
+  let doc =
+    "ID of the profile you want to use to analyze the trace. You can use the \
+     list-profiles command to get the IDs of the existing profiles."
+  in
+  Cmdliner.Arg.(required & opt (some int) None & info ["profile-id"] ~doc)
+
+let analyze =
+  let doc =
+    "ID of the profile you want to use to analyze the trace. You can use the \
+     list-profiles command to get the IDs of the existing profiles."
+  in
+  Cmdliner.Arg.(value & opt (some int) None & info ["analyze"] ~doc)
 
 let api_endpoint =
   let doc = "Base URL of the API server." in
@@ -142,26 +201,73 @@ let no_check_certificate =
   in
   Cmdliner.Arg.(value & flag & info ~doc ["no-check-certificate"])
 
-let upload_trace_main
-    trace_file
-    trace_name
-    project_id
-    project_name
-    api_endpoint
-    api_key
-    ca_file
-    no_check_certificate =
+let run_command ~ca_file ~no_check_certificate ~api_endpoint ~api_key f =
   Curl.global_init Curl.CURLINIT_GLOBALALL;
+  let api = Api.make ~api_endpoint ~api_key in
   Fun.protect
     (fun () ->
       let config =
         {Cs_api_io.Config.verify = not no_check_certificate; ca_file}
       in
       Cs_api_io.with_client ~config ~f:(fun client ->
-          upload_trace ~client ~trace_file ~trace_name ~project_id ~project_name
-            ~api_endpoint ~api_key
-          |> Lwt_main.run))
+          f ~client ~api |> Lwt_main.run))
     ~finally:(fun () -> Curl.global_cleanup ())
+
+let upload_trace_main
+    trace_file
+    trace_name
+    project_id
+    project_name
+    analyze
+    api_endpoint
+    api_key
+    ca_file
+    no_check_certificate =
+  upload_trace ~trace_file ~trace_name ~project_id ~project_name ~analyze
+  |> run_command ~ca_file ~no_check_certificate ~api_endpoint ~api_key
+
+let analyze_trace_main
+    trace_id
+    profile_id
+    api_endpoint
+    api_key
+    ca_file
+    no_check_certificate =
+  analyze_trace ~trace_id ~count:1 profile_id
+  |> run_command ~ca_file ~no_check_certificate ~api_key ~api_endpoint
+
+let list_profiles_main api_endpoint api_key ca_file no_check_certificate =
+  list_profiles
+  |> run_command ~ca_file ~no_check_certificate ~api_key ~api_endpoint
+
+let list_profiles_term =
+  Cmdliner.Term.(
+    const list_profiles_main
+    $ api_endpoint
+    $ api_key
+    $ ca_file
+    $ no_check_certificate)
+
+let list_profiles_info =
+  Cmdliner.Term.info "list-profiles"
+    ~doc:"List the available profiles of the Cryptosense Analyzer platform"
+
+let list_profiles_cmd = (list_profiles_term, list_profiles_info)
+
+let analyze_term =
+  Cmdliner.Term.(
+    const analyze_trace_main
+    $ trace_id
+    $ profile_id
+    $ api_endpoint
+    $ api_key
+    $ ca_file
+    $ no_check_certificate)
+
+let analyze_info =
+  Cmdliner.Term.info "analyze" ~doc:"Analyze a trace to create a report"
+
+let analyze_cmd = (analyze_term, analyze_info)
 
 let upload_trace_term =
   Cmdliner.Term.(
@@ -170,6 +276,7 @@ let upload_trace_term =
     $ trace_name
     $ project_id
     $ project_name
+    $ analyze
     $ api_endpoint
     $ api_key
     $ ca_file
@@ -189,5 +296,6 @@ let default_info = Cmdliner.Term.info "cs-api" ~version:"%%VERSION_NUM%%"
 let default_cmd = (default_term, default_info)
 
 let () =
-  Cmdliner.Term.eval_choice default_cmd [upload_trace_cmd]
+  Cmdliner.Term.eval_choice default_cmd
+    [analyze_cmd; list_profiles_cmd; upload_trace_cmd]
   |> Cmdliner.Term.exit_status

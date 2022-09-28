@@ -29,16 +29,34 @@ module Graphql = struct
       }
     |}
 
-  let list_projects =
+  let analyze_trace =
     {|
-      query ListProjects {
+      mutation AnalyzeTrace($traceId: ID!, $profileId: ID!) {
+        analyze(
+          input: {
+            traceId: $traceId
+            profileId: $profileId,
+          }
+        ) {
+          report {
+            name
+            id
+          }
+        }
+      }
+    |}
+
+  let list_profiles =
+    {|
+      query ListProfiles {
         viewer {
           organization {
-            projects {
+            profiles {
               edges {
                 node {
                   id
                   name
+                  type
                 }
               }
             }
@@ -46,9 +64,21 @@ module Graphql = struct
         }
       }
     |}
+
+  let search_project_by_name =
+    {|
+      query SearchProject($name: String!) {
+        viewer {
+          project(name: $name) {
+            id
+            name
+          }
+        }
+      }
+    |}
 end
 
-let build_list_projects_request ~api =
+let build_list_profiles_request ~api =
   let {Api.endpoint; key} = api in
   { Api.Request.url = endpoint ^ "/api/v2"
   ; header = [("API-KEY", key); ("Content-Type", "application/json")]
@@ -56,16 +86,28 @@ let build_list_projects_request ~api =
   ; data =
       Raw
         (Yojson.Safe.to_string
-           (`Assoc [("query", `String Graphql.list_projects)])) }
+           (`Assoc [("query", `String Graphql.list_profiles)])) }
 
-let parse_list_projects_response ~body =
+let build_search_project_by_name_request ~api ~name =
+  let {Api.endpoint; key} = api in
+  { Api.Request.url = endpoint ^ "/api/v2"
+  ; header = [("API-KEY", key); ("Content-Type", "application/json")]
+  ; method_ = Post
+  ; data =
+      Raw
+        (Yojson.Safe.to_string
+           (`Assoc
+             [ ("query", `String Graphql.search_project_by_name)
+             ; ("variables", `Assoc [("name", `String name)]) ])) }
+
+let parse_list_profiles_response ~body =
   let open Yojson.Basic.Util in
   let json = Yojson.Basic.from_string body in
   json
   |> member "data"
   |> member "viewer"
   |> member "organization"
-  |> member "projects"
+  |> member "profiles"
   |> member "edges"
   |> to_list
   |> CCList.map (fun edge ->
@@ -74,7 +116,18 @@ let parse_list_projects_response ~body =
          , node
            |> member "id"
            |> to_string
-           |> Graphql.of_global_id ~type_:"Project" ))
+           |> Graphql.of_global_id ~type_:"Profile"
+         , node |> member "type" |> to_string ))
+
+let parse_search_project_by_name_response ~body =
+  let open Yojson.Basic.Util in
+  let json = Yojson.Basic.from_string body in
+  json |> member "data" |> member "viewer" |> member "project" |> fun project ->
+  match project with
+  | `Null -> None
+  | _ ->
+    Some
+      (member "id" project |> to_string |> Graphql.of_global_id ~type_:"Project")
 
 let parse_s3_signature_request ~body =
   let open CCOption.Infix in
@@ -163,3 +216,46 @@ let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file =
                    ; ("name", `String trace_name)
                    ; ("key", `String s3_key)
                    ; ("size", `Int size) ] ) ])) }
+
+let build_analyze_request ~api ~trace_id ~profile_id =
+  let {Api.endpoint; key} = api in
+  { Api.Request.url = endpoint ^ "/api/v2"
+  ; header = [("API-KEY", key); ("Content-Type", "application/json")]
+  ; method_ = Post
+  ; data =
+      Raw
+        (Yojson.Safe.to_string
+           (`Assoc
+             [ ("query", `String Graphql.analyze_trace)
+             ; ( "variables"
+               , `Assoc
+                   [ ( "traceId"
+                     , `String
+                         (Graphql.to_global_id ~type_:"Trace" ~id:trace_id) )
+                   ; ( "profileId"
+                     , `String
+                         (Graphql.to_global_id ~type_:"Profile" ~id:profile_id)
+                     ) ] ) ])) }
+
+let get_id_from_trace_import_response_body ~body =
+  let open Yojson.Basic.Util in
+  Yojson.Basic.from_string body
+  |> member "data"
+  |> member "createTrace"
+  |> member "trace"
+  |> member "id"
+  |> to_string
+  |> Graphql.of_global_id ~type_:"Trace"
+
+let get_info_from_analyze_response_body ~body =
+  let open Yojson.Basic.Util in
+  Yojson.Basic.from_string body
+  |> member "data"
+  |> member "analyze"
+  |> member "report"
+  |> fun json ->
+  let name = member "name" json |> to_string in
+  let id =
+    member "id" json |> to_string |> Graphql.of_global_id ~type_:"Report"
+  in
+  (name, id)
