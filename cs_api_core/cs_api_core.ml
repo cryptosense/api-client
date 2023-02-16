@@ -11,6 +11,16 @@ module Graphql = struct
          (Printf.sprintf "Invalid global ID prefix for type %s" type_)
     |> int_of_string
 
+  let generate_trace_upload_post =
+    {|
+      mutation GenerateTraceUploadPost {
+        generateTraceUploadPost(input: {}) {
+          url
+          formData
+        }
+      }
+    |}
+
   let create_trace =
     {|
       mutation CreateTrace($projectId: ID!, $name: String!, $key: String!, $size: Int!) {
@@ -133,25 +143,25 @@ let parse_s3_signature_request ~body =
   let open CCOption.Infix in
   let open Yojson.Basic.Util in
   let json = Yojson.Basic.from_string body in
-  let data = json |> member "data" in
+  let data = json |> member "data" |> member "generateTraceUploadPost" in
   let url = data |> member "url" |> to_string_option in
-  let signature =
-    data |> member "fields" |> member "x-amz-signature" |> to_string_option
+  let formData =
+    match data |> member "formData" with
+    |`String str -> Yojson.Basic.from_string str
+    | _ -> `Null
   in
-  let credential =
-    data |> member "fields" |> member "x-amz-credential" |> to_string_option
+  let signature = formData |>  member "x-amz-signature" |> to_string_option in
+  let credential = formData |> member "x-amz-credential" |> to_string_option
   in
-  let algorithm =
-    data |> member "fields" |> member "x-amz-algorithm" |> to_string_option
+  let algorithm = formData |> member "x-amz-algorithm" |> to_string_option
   in
-  let date =
-    data |> member "fields" |> member "x-amz-date" |> to_string_option
+  let date = formData |> member "x-amz-date" |> to_string_option
   in
-  let key = data |> member "fields" |> member "key" |> to_string_option in
-  let policy = data |> member "fields" |> member "policy" |> to_string_option in
-  let acl = data |> member "fields" |> member "acl" |> to_string_option in
+  let key = formData |> member "key" |> to_string_option in
+  let policy = formData |> member "policy" |> to_string_option in
+  let acl = formData |> member "acl" |> to_string_option in
   let success_action_status =
-    data |> member "fields" |> member "success_action_status" |> to_int_option
+    formData|> member "success_action_status" |> to_int_option
   in
   url >>= fun url ->
   signature >>= fun signature ->
@@ -179,10 +189,16 @@ let parse_s3_response ~body =
 
 let build_s3_signed_post_request ~api =
   let {Api.endpoint; key} = api in
-  { Api.Request.url = endpoint ^ "/api/v1/trace_s3_post"
-  ; header = [("API-KEY", key)]
+  { Api.Request.url = endpoint ^ "/api/v2"
+  ; header = [("API-KEY", key); ("Content-Type", "application/json")]
   ; method_ = Post
-  ; data = Multipart [] }
+  ; data =
+      Raw
+        (Yojson.Safe.to_string
+           (`Assoc
+             [ ("query", `String Graphql.generate_trace_upload_post)
+             ; ( "variables", `Assoc [])]))
+  }
 
 let build_file_upload_request ~s3_url ~s3_signature ~(file : Api.File.t) =
   let direct_fields =
