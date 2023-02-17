@@ -23,11 +23,12 @@ module Graphql = struct
 
   let create_trace =
     {|
-      mutation CreateTrace($projectId: ID!, $name: String!, $key: String!, $size: Int!) {
+      mutation CreateTrace($projectId: ID!, $name: String!, $slotName: String, $key: String!, $size: Int!) {
         createTrace(
           input: {
             projectId: $projectId,
             name: $name,
+            defaultSlotName: $slotName,
             key: $key,
             size: $size
           }
@@ -147,21 +148,18 @@ let parse_s3_signature_request ~body =
   let url = data |> member "url" |> to_string_option in
   let formData =
     match data |> member "formData" with
-    |`String str -> Yojson.Basic.from_string str
+    | `String str -> Yojson.Basic.from_string str
     | _ -> `Null
   in
-  let signature = formData |>  member "x-amz-signature" |> to_string_option in
-  let credential = formData |> member "x-amz-credential" |> to_string_option
-  in
-  let algorithm = formData |> member "x-amz-algorithm" |> to_string_option
-  in
-  let date = formData |> member "x-amz-date" |> to_string_option
-  in
+  let signature = formData |> member "x-amz-signature" |> to_string_option in
+  let credential = formData |> member "x-amz-credential" |> to_string_option in
+  let algorithm = formData |> member "x-amz-algorithm" |> to_string_option in
+  let date = formData |> member "x-amz-date" |> to_string_option in
   let key = formData |> member "key" |> to_string_option in
   let policy = formData |> member "policy" |> to_string_option in
   let acl = formData |> member "acl" |> to_string_option in
   let success_action_status =
-    formData|> member "success_action_status" |> to_int_option
+    formData |> member "success_action_status" |> to_int_option
   in
   url >>= fun url ->
   signature >>= fun signature ->
@@ -197,8 +195,7 @@ let build_s3_signed_post_request ~api =
         (Yojson.Safe.to_string
            (`Assoc
              [ ("query", `String Graphql.generate_trace_upload_post)
-             ; ( "variables", `Assoc [])]))
-  }
+             ; ("variables", `Assoc []) ])) }
 
 let build_file_upload_request ~s3_url ~s3_signature ~(file : Api.File.t) =
   let direct_fields =
@@ -212,9 +209,20 @@ let build_file_upload_request ~s3_url ~s3_signature ~(file : Api.File.t) =
   ; method_ = Post
   ; data = Multipart (direct_fields @ [{name = "file"; content = File file}]) }
 
-let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file =
+let build_trace_import_request
+    ~api
+    ~project_id
+    ~slot_name
+    ~s3_key
+    ~trace_name
+    ~file =
   let {Api.endpoint; key} = api in
   let {Api.File.size; _} = file in
+  let slot_name_var =
+    match slot_name with
+    | Some name -> `String name
+    | None -> `Null
+  in
   { Api.Request.url = endpoint ^ "/api/v2"
   ; header = [("API-KEY", key); ("Content-Type", "application/json")]
   ; method_ = Post
@@ -225,7 +233,8 @@ let build_trace_import_request ~api ~project_id ~s3_key ~trace_name ~file =
              [ ("query", `String Graphql.create_trace)
              ; ( "variables"
                , `Assoc
-                   [ ( "projectId"
+                   [ ("slotName", slot_name_var)
+                   ; ( "projectId"
                      , `String
                          (Graphql.to_global_id ~type_:"Project" ~id:project_id)
                      )

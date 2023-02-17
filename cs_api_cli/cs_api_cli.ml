@@ -61,6 +61,7 @@ let upload_trace
     ~trace_name
     ~project_id
     ~project_name
+    ~slot_name
     ~analyze
     ~api =
   let open Lwt.Infix in
@@ -85,8 +86,8 @@ let upload_trace
   >>= (fun body ->
         let s3_key = Cs_api_core.parse_s3_response ~body in
         let import_request =
-          Cs_api_core.build_trace_import_request ~api ~project_id ~s3_key
-            ~trace_name ~file
+          Cs_api_core.build_trace_import_request ~slot_name ~api ~project_id
+            ~s3_key ~trace_name ~file
         in
         Lwt.return (Ok import_request))
   >>= Cs_api_io.send_request ~client
@@ -145,6 +146,13 @@ let project_id =
      with --project-name."
   in
   Cmdliner.Arg.(value & opt (some int) None & info ["p"; "project-id"] ~doc)
+
+let slot_name =
+  let doc =
+    "Name of the slot the trace should be added to. If no slot with this name \
+     exist in the chosen project then one will be created."
+  in
+  Cmdliner.Arg.(value & opt (some string) None & info ["slot-name"] ~doc)
 
 let project_name =
   let doc =
@@ -218,12 +226,14 @@ let upload_trace_main
     trace_name
     project_id
     project_name
+    slot_name
     analyze
     api_endpoint
     api_key
     ca_file
     no_check_certificate =
-  upload_trace ~trace_file ~trace_name ~project_id ~project_name ~analyze
+  upload_trace ~trace_file ~trace_name ~project_id ~project_name ~slot_name
+    ~analyze
   |> run_command ~ca_file ~no_check_certificate ~api_endpoint ~api_key
 
 let analyze_trace_main
@@ -276,6 +286,7 @@ let upload_trace_term =
     $ trace_name
     $ project_id
     $ project_name
+    $ slot_name
     $ analyze
     $ api_endpoint
     $ api_key

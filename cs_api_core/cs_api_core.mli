@@ -1,6 +1,8 @@
 module Graphql : sig
   val to_global_id : type_:string -> id:int -> string
 
+  val generate_trace_upload_post : string
+
   val create_trace : string
 
   val analyze_trace : string
@@ -35,6 +37,7 @@ val build_file_upload_request :
 val build_trace_import_request :
      api:Api.t
   -> project_id:int
+  -> slot_name:string option
   -> s3_key:string
   -> trace_name:string
   -> file:Api.File.t
