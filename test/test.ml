@@ -15,10 +15,16 @@ let request_builder_tests =
   let api = Api.make ~api_endpoint:"endpoint" ~api_key:"KEY" in
   [ test_request ~name:"S3 Signature request"
       ~expected:
-        { Api.Request.url = "endpoint/api/v1/trace_s3_post"
-        ; header = [("API-KEY", "KEY")]
+        { Api.Request.url = "endpoint/api/v2"
+        ; header = [("API-KEY", "KEY"); ("Content-Type", "application/json")]
         ; method_ = Post
-        ; data = Multipart [] }
+        ; data =
+            Raw
+              (Yojson.Safe.to_string
+                 (`Assoc
+                   [ ( "query"
+                     , `String Cs_api_core.Graphql.generate_trace_upload_post )
+                   ; ("variables", `Assoc []) ])) }
       ~actual:(Cs_api_core.build_s3_signed_post_request ~api)
   ; test_request ~name:"File upload request"
       ~expected:
@@ -38,7 +44,7 @@ let request_builder_tests =
         (Cs_api_core.build_file_upload_request ~s3_url:"url"
            ~s3_signature:[("key", "abc"); ("signature", "cde")]
            ~file:{path = "folder/path"; size = 10})
-  ; test_request ~name:"Trace import request"
+  ; test_request ~name:"Trace import request without slot name"
       ~expected:
         { url = "endpoint/api/v2"
         ; header = [("API-KEY", "KEY"); ("Content-Type", "application/json")]
@@ -50,7 +56,8 @@ let request_builder_tests =
                    [ ("query", `String Cs_api_core.Graphql.create_trace)
                    ; ( "variables"
                      , `Assoc
-                         [ ( "projectId"
+                         [ ("slotName", `Null)
+                         ; ( "projectId"
                            , `String
                                (Cs_api_core.Graphql.to_global_id
                                   ~type_:"Project" ~id:9) )
@@ -58,8 +65,33 @@ let request_builder_tests =
                          ; ("key", `String "abc")
                          ; ("size", `Int 10) ] ) ])) }
       ~actual:
-        (Cs_api_core.build_trace_import_request ~api ~project_id:9 ~s3_key:"abc"
-           ~trace_name:"cde" ~file:{path = "path"; size = 10})
+        (Cs_api_core.build_trace_import_request ~api ~project_id:9
+           ~slot_name:None ~s3_key:"abc" ~trace_name:"cde"
+           ~file:{path = "path"; size = 10})
+  ; test_request ~name:"Trace import request with slot name"
+      ~expected:
+        { url = "endpoint/api/v2"
+        ; header = [("API-KEY", "KEY"); ("Content-Type", "application/json")]
+        ; method_ = Post
+        ; data =
+            Raw
+              (Yojson.Safe.to_string
+                 (`Assoc
+                   [ ("query", `String Cs_api_core.Graphql.create_trace)
+                   ; ( "variables"
+                     , `Assoc
+                         [ ("slotName", `String "name")
+                         ; ( "projectId"
+                           , `String
+                               (Cs_api_core.Graphql.to_global_id
+                                  ~type_:"Project" ~id:9) )
+                         ; ("name", `String "cde")
+                         ; ("key", `String "abc")
+                         ; ("size", `Int 10) ] ) ])) }
+      ~actual:
+        (Cs_api_core.build_trace_import_request ~api ~project_id:9
+           ~slot_name:(Some "name") ~s3_key:"abc" ~trace_name:"cde"
+           ~file:{path = "path"; size = 10})
   ; test_request ~name:"Trace analysis request"
       ~expected:
         { url = "endpoint/api/v2"
