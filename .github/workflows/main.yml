@@ -19,6 +19,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Retrieve new lists of system packages
+        if: runner.os != 'Windows'
+        run: sudo apt-get update
       - name: Use OCaml ${{ matrix.ocaml-compiler }}
         if: runner.os != 'Windows'
         uses: ocaml/setup-ocaml@v2
