@@ -184,7 +184,7 @@ let api_endpoint =
 
 let api_key =
   let doc = "API key" in
-  let env = Cmdliner.Arg.env_var "CRYPTOSENSE_API_KEY" ~doc in
+  let env = Cmdliner.Cmd.Env.info "CRYPTOSENSE_API_KEY" ~doc in
   let doc =
     "API key - can also be defined using the CRYPTOSENSE_API_KEY environment \
      variable"
@@ -259,10 +259,10 @@ let list_profiles_term =
     $ no_check_certificate)
 
 let list_profiles_info =
-  Cmdliner.Term.info "list-profiles"
+  Cmdliner.Cmd.info "list-profiles"
     ~doc:"List the available profiles of the Cryptosense Analyzer platform"
 
-let list_profiles_cmd = (list_profiles_term, list_profiles_info)
+let list_profiles_cmd = Cmdliner.Cmd.v list_profiles_info list_profiles_term
 
 let analyze_term =
   Cmdliner.Term.(
@@ -275,9 +275,9 @@ let analyze_term =
     $ no_check_certificate)
 
 let analyze_info =
-  Cmdliner.Term.info "analyze" ~doc:"Analyze a trace to create a report"
+  Cmdliner.Cmd.info "analyze" ~doc:"Analyze a trace to create a report"
 
-let analyze_cmd = (analyze_term, analyze_info)
+let analyze_cmd = Cmdliner.Cmd.v analyze_info analyze_term
 
 let upload_trace_term =
   Cmdliner.Term.(
@@ -294,19 +294,20 @@ let upload_trace_term =
     $ no_check_certificate)
 
 let upload_trace_info =
-  Cmdliner.Term.info "upload-trace"
+  Cmdliner.Cmd.info "upload-trace"
     ~doc:"Upload a trace to the Cryptosense Analyzer platform"
 
-let upload_trace_cmd = (upload_trace_term, upload_trace_info)
+let upload_trace_cmd = Cmdliner.Cmd.v upload_trace_info upload_trace_term
 
 let default_term =
   Cmdliner.Term.(ret (const (`Error (true, "Missing command"))))
 
-let default_info = Cmdliner.Term.info "cs-api" ~version:"%%VERSION_NUM%%"
+let default_info = Cmdliner.Cmd.info "cs-api" ~version:"%%VERSION_NUM%%"
 
-let default_cmd = (default_term, default_info)
+let default_cmd = default_info
 
 let () =
-  Cmdliner.Cmd.group default_cmd
+  Cmdliner.Cmd.group ~default:default_term default_cmd
     [analyze_cmd; list_profiles_cmd; upload_trace_cmd]
-  |> Cmdliner.Term.exit_status
+  |> Cmdliner.Cmd.eval'
+  |> Stdlib.exit
