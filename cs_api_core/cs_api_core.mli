@@ -11,7 +11,7 @@ module Graphql : sig
 end
 
 val parse_s3_signature_request :
-  body:string -> (string * Api.S3Signature.t) option
+  body:string -> (string * Api.Method.t * Api.S3Signature.t) option
 (** Response parsing functions **)
 
 val parse_s3_response : body:string -> string
@@ -30,6 +30,7 @@ val parse_search_project_by_name_response : body:string -> int option
 
 val build_file_upload_request :
      s3_url:string
+  -> s3_method: Api.Method.t
   -> s3_signature:Api.S3Signature.t
   -> file:Api.File.t
   -> Api.Request.t

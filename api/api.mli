@@ -28,6 +28,7 @@ end
 module Data : sig
   type t =
     | Raw of string
+    | File of File.t
     | Multipart of Part.t list
   [@@deriving eq, ord, show]
 
@@ -38,6 +39,7 @@ module Method : sig
   type t =
     | Get
     | Post
+    | Put
 end
 
 module Request : sig

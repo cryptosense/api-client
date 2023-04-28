@@ -28,6 +28,7 @@ end
 module Data = struct
   type t =
     | Raw of string
+    | File of File.t
     | Multipart of Part.t list
   [@@deriving eq, ord, show]
 
@@ -39,6 +40,7 @@ module Method = struct
   type t =
     | Get
     | Post
+    | Put
   [@@deriving eq, ord, show]
 end
 

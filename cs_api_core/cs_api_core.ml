@@ -17,6 +17,7 @@ module Graphql = struct
         generateTraceUploadPost(input: {}) {
           url
           formData
+          method
         }
       }
     |}
@@ -146,6 +147,7 @@ let parse_s3_signature_request ~body =
   let json = Yojson.Basic.from_string body in
   let data = json |> member "data" |> member "generateTraceUploadPost" in
   let url = data |> member "url" |> to_string_option in
+  let method_ = data |> member "method" |> to_string_option in
   let formData =
     match data |> member "formData" with
     | `String str -> Yojson.Basic.from_string str
@@ -162,23 +164,32 @@ let parse_s3_signature_request ~body =
     formData |> member "success_action_status" |> to_int_option
   in
   url >>= fun url ->
-  signature >>= fun signature ->
-  key >>= fun key ->
-  credential >>= fun credential ->
-  date >>= fun date ->
-  algorithm >>= fun algorithm ->
-  policy >>= fun policy ->
-  acl >>= fun acl ->
-  success_action_status >|= fun success_action_status ->
-  ( url
-  , [ ("x-amz-signature", signature)
-    ; ("x-amz-credential", credential)
-    ; ("x-amz-algorithm", algorithm)
-    ; ("x-amz-date", date)
-    ; ("key", key)
-    ; ("policy", policy)
-    ; ("acl", acl)
-    ; ("success_action_status", string_of_int success_action_status) ] )
+  method_ >>= fun method_ ->
+  (if method_ == "POST" then
+      signature >>= fun signature ->
+      key >>= fun key ->
+      credential >>= fun credential ->
+      date >>= fun date ->
+      algorithm >>= fun algorithm ->
+      policy >>= fun policy ->
+      acl >>= fun acl ->
+      success_action_status >|= fun success_action_status ->
+      ( url
+      , Api.Method.Post
+      , [ ("x-amz-signature", signature)
+        ; ("x-amz-credential", credential)
+        ; ("x-amz-algorithm", algorithm)
+        ; ("x-amz-date", date)
+        ; ("key", key)
+        ; ("policy", policy)
+        ; ("acl", acl)
+        ; ("success_action_status", string_of_int success_action_status) ] )
+   else if method_ == "PUT" then
+     Some ( url
+      , Api.Method.Put
+      , [] )
+   else
+     raise (Invalid_argument ("Unknown method: " ^ method_)))
 
 let parse_s3_response ~body =
   let key_extractor = Str.regexp "<Key>\\([^<>]*\\)</Key>" in
@@ -197,17 +208,26 @@ let build_s3_signed_post_request ~api =
              [ ("query", `String Graphql.generate_trace_upload_post)
              ; ("variables", `Assoc []) ])) }
 
-let build_file_upload_request ~s3_url ~s3_signature ~(file : Api.File.t) =
+let build_file_upload_request ~s3_url ~s3_method ~s3_signature ~(file : Api.File.t) =
   let direct_fields =
     Api.Data.multipart_from_assoc
       (s3_signature
       @ [ ("Content-Type", "")
         ; ("x-amz-meta-filename", Filename.basename file.path) ])
   in
-  { Api.Request.url = s3_url
-  ; header = []
-  ; method_ = Post
-  ; data = Multipart (direct_fields @ [{name = "file"; content = File file}]) }
+  match s3_method with
+  | Api.Method.Post ->
+      { Api.Request.url = s3_url
+      ; header = []
+      ; method_ = Post
+      ; data = Multipart (direct_fields @ [{name = "file"; content = File file}]) }
+  | Put ->
+      { Api.Request.url = s3_url
+      ; header = []
+      ; method_ = Put
+      ; data = File file }
+  | Get ->
+      raise (Invalid_argument "Unsupported method: GET")
 
 let build_trace_import_request
     ~api

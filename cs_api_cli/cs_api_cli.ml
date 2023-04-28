@@ -76,10 +76,10 @@ let upload_trace
         match Cs_api_core.parse_s3_signature_request ~body with
         | None ->
           Lwt.return (Error "Failed to parse S3 signature request response")
-        | Some (s3_url, s3_signature) ->
+        | Some (s3_url, s3_method, s3_signature) ->
           Lwt.return
             (Ok
-               (Cs_api_core.build_file_upload_request ~s3_url ~s3_signature
+               (Cs_api_core.build_file_upload_request ~s3_url ~s3_method ~s3_signature
                   ~file)))
   >>= Cs_api_io.send_request ~client
   >>= Cs_api_io.get_response
@@ -307,6 +307,6 @@ let default_info = Cmdliner.Term.info "cs-api" ~version:"%%VERSION_NUM%%"
 let default_cmd = (default_term, default_info)
 
 let () =
-  Cmdliner.Term.eval_choice default_cmd
+  Cmdliner.Cmd.group default_cmd
     [analyze_cmd; list_profiles_cmd; upload_trace_cmd]
   |> Cmdliner.Term.exit_status

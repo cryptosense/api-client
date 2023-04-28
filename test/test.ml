@@ -1,6 +1,7 @@
 let method_to_string : Api.Method.t -> _ = function
   | Post -> "POST"
   | Get -> "GET"
+  | Put -> "PUT"
 
 let file_to_tuple : Api.File.t option -> _ = function
   | None -> None
@@ -42,6 +43,7 @@ let request_builder_tests =
                   ; content = File {path = "folder/path"; size = 10} } ]) }
       ~actual:
         (Cs_api_core.build_file_upload_request ~s3_url:"url"
+           ~s3_method:Api.Method.Post
            ~s3_signature:[("key", "abc"); ("signature", "cde")]
            ~file:{path = "folder/path"; size = 10})
   ; test_request ~name:"Trace import request without slot name"
