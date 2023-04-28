@@ -40,13 +40,18 @@ let set_multipart curl parts =
   parts |> List.map make_part |> Curl.set_httppost curl
 
 let build_file_reader path =
-    let channel = open_in_bin path in
-    let reader n =
-        let buf = Bytes.create n in
-        let _ = input channel buf 0 n in
-        Bytes.to_string buf
-    in
-    reader
+  let channel = open_in_bin path in
+  let is_channel_open = ref true in
+  let reader n =
+    let buf = Bytes.create n in
+    let bytes_in = input channel buf 0 n in
+    Printf.printf "Read from channel (%d)\n" bytes_in;
+    if Int.equal bytes_in 0 && !is_channel_open then close_in channel;
+    is_channel_open := false;
+    Printf.printf "Closing channel\n";
+    Bytes.to_string buf
+  in
+  reader
 
 let send_request ~client:{config; curl} {Api.Request.url; header; method_; data}
     =
@@ -55,18 +60,19 @@ let send_request ~client:{config; curl} {Api.Request.url; header; method_; data}
   Curl.set_sslverifypeer curl config.verify;
   Curl.set_sslverifyhost curl
     (if config.verify then
-      SSLVERIFYHOST_HOSTNAME
-    else
-      SSLVERIFYHOST_NONE);
+       SSLVERIFYHOST_HOSTNAME
+     else
+       SSLVERIFYHOST_NONE);
   config.ca_file |> Option.iter (fun ca_file -> Curl.set_cainfo curl ca_file);
   Curl.set_writefunction curl response_callback;
   set_headers curl header;
   let set_data curl = function
     | Api.Data.Raw str -> Curl.set_postfields curl str
     | File {Api.File.path; size} ->
+      Printf.printf "Size: %d\n" size;
       Curl.set_upload curl true;
       Curl.set_readfunction curl (build_file_reader path);
-      Curl.set_infilesize curl size;
+      Curl.set_infilesize curl size
     | Multipart parts -> set_multipart curl parts
   in
   let _ =

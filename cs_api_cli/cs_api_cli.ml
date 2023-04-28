@@ -37,9 +37,9 @@ let resolve_project_name ~client ~api ~project_id ~project_name =
 let rec analyze_trace ~client ~trace_id ~api ~count profile_id =
   let open Lwt.Infix in
   (let open Lwt_result.Infix in
-  Cs_api_core.build_analyze_request ~api ~trace_id ~profile_id
-  |> Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response_graphql)
+   Cs_api_core.build_analyze_request ~api ~trace_id ~profile_id
+   |> Cs_api_io.send_request ~client
+   >>= Cs_api_io.get_response_graphql)
   >>= function
   | Error "Not found" ->
     Printf.printf "Profile ID not found\n";
@@ -66,32 +66,32 @@ let upload_trace
     ~api =
   let open Lwt.Infix in
   (let open Lwt_result.Infix in
-  get_file trace_file >>= fun file ->
-  resolve_project_name ~client ~api ~project_id ~project_name
-  >>= fun project_id ->
-  Cs_api_core.build_s3_signed_post_request ~api
-  |> Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response_graphql
-  >>= (fun body ->
-        match Cs_api_core.parse_s3_signature_request ~body with
-        | None ->
-          Lwt.return (Error "Failed to parse S3 signature request response")
-        | Some (s3_url, s3_method, s3_signature) ->
-          Lwt.return
-            (Ok
-               (Cs_api_core.build_file_upload_request ~s3_url ~s3_method ~s3_signature
-                  ~file)))
-  >>= Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response
-  >>= (fun body ->
-        let s3_key = Cs_api_core.parse_s3_response ~body in
-        let import_request =
-          Cs_api_core.build_trace_import_request ~slot_name ~api ~project_id
-            ~s3_key ~trace_name ~file
-        in
-        Lwt.return (Ok import_request))
-  >>= Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response_graphql)
+   get_file trace_file >>= fun file ->
+   resolve_project_name ~client ~api ~project_id ~project_name
+   >>= fun project_id ->
+   Cs_api_core.build_s3_signed_post_request ~api
+   |> Cs_api_io.send_request ~client
+   >>= Cs_api_io.get_response_graphql
+   >>= (fun body ->
+         match Cs_api_core.parse_s3_signature_request ~body with
+         | None ->
+           Lwt.return (Error "Failed to parse S3 signature request response")
+         | Some (s3_url, s3_method, s3_signature) ->
+           Lwt.return
+             (Ok
+                (Cs_api_core.build_file_upload_request ~s3_url ~s3_method
+                   ~s3_signature ~file)))
+   >>= Cs_api_io.send_request ~client
+   >>= Cs_api_io.get_response
+   >>= (fun body ->
+         let s3_key = Cs_api_core.parse_s3_response ~body in
+         let import_request =
+           Cs_api_core.build_trace_import_request ~slot_name ~api ~project_id
+             ~s3_key ~trace_name ~file
+         in
+         Lwt.return (Ok import_request))
+   >>= Cs_api_io.send_request ~client
+   >>= Cs_api_io.get_response_graphql)
   >>= function
   | Ok body ->
     let trace_id = Cs_api_core.get_id_from_trace_import_response_body ~body in
@@ -107,10 +107,10 @@ let upload_trace
 let list_profiles ~client ~api =
   let open Lwt.Infix in
   (let open Lwt_result.Infix in
-  Cs_api_core.build_list_profiles_request ~api
-  |> Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response_graphql
-  >|= fun body -> Cs_api_core.parse_list_profiles_response ~body)
+   Cs_api_core.build_list_profiles_request ~api
+   |> Cs_api_io.send_request ~client
+   >>= Cs_api_io.get_response_graphql
+   >|= fun body -> Cs_api_core.parse_list_profiles_response ~body)
   >|= function
   | Error message ->
     Printf.printf "%s\n" message;
@@ -303,7 +303,6 @@ let default_term =
   Cmdliner.Term.(ret (const (`Error (true, "Missing command"))))
 
 let default_info = Cmdliner.Cmd.info "cs-api" ~version:"%%VERSION_NUM%%"
-
 let default_cmd = default_info
 
 let () =
