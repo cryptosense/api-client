@@ -77,14 +77,20 @@ let upload_trace
          | None ->
            Lwt.return (Error "Failed to parse S3 signature request response")
          | Some (s3_url, s3_method, s3_signature) ->
+           Printf.printf "Got S3 signature request paramters.\n";
            Lwt.return
              (Ok
-                (Cs_api_core.build_file_upload_request ~s3_url ~s3_method
-                   ~s3_signature ~file)))
-   >>= Cs_api_io.send_request ~client
-   >>= Cs_api_io.get_response
-   >>= (fun body ->
-         let s3_key = Cs_api_core.parse_s3_response ~body in
+                ( s3_url
+                , Cs_api_core.build_file_upload_request ~s3_url ~s3_method
+                    ~s3_signature ~file )))
+   >>= (fun (url, request) ->
+         ( Cs_api_io.send_request ~client request >>= fun response ->
+           Cs_api_io.get_response response )
+         >>= fun body ->
+         match Cs_api_core.parse_s3_response ~body with
+         | Ok s3_key -> Lwt_result.return s3_key
+         | Error _ -> Lwt.return (Cs_api_core.parse_s3_url url))
+   >>= (fun s3_key ->
          let import_request =
            Cs_api_core.build_trace_import_request ~slot_name ~api ~project_id
              ~s3_key ~trace_name ~file

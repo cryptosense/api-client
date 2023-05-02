@@ -10,7 +10,9 @@ val parse_s3_signature_request :
   body:string -> (string * Api.Method.t * Api.S3Signature.t) option
 (** Response parsing functions **)
 
-val parse_s3_response : body:string -> string
+val parse_s3_response : body:string -> (string, string) result
+
+val parse_s3_url : string -> (string, string) result
 
 val build_s3_signed_post_request : api:Api.t -> Api.Request.t
 (** Request building functions **)

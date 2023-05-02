@@ -43,13 +43,16 @@ let build_file_reader path =
   let channel = open_in_bin path in
   let is_channel_open = ref true in
   let reader n =
-    let buf = Bytes.create n in
-    let bytes_in = input channel buf 0 n in
-    Printf.printf "Read from channel (%d)\n" bytes_in;
-    if Int.equal bytes_in 0 && !is_channel_open then close_in channel;
-    is_channel_open := false;
-    Printf.printf "Closing channel\n";
-    Bytes.to_string buf
+    if !is_channel_open then (
+      let buf = Bytes.create n in
+      let bytes_in = input channel buf 0 n in
+      if Int.equal bytes_in 0 && !is_channel_open then (
+        close_in channel;
+        is_channel_open := false
+      );
+      Bytes.to_string buf
+    ) else
+      ""
   in
   reader
 
@@ -69,7 +72,6 @@ let send_request ~client:{config; curl} {Api.Request.url; header; method_; data}
   let set_data curl = function
     | Api.Data.Raw str -> Curl.set_postfields curl str
     | File {Api.File.path; size} ->
-      Printf.printf "Size: %d\n" size;
       Curl.set_upload curl true;
       Curl.set_readfunction curl (build_file_reader path);
       Curl.set_infilesize curl size

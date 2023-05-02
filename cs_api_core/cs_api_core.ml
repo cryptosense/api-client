@@ -190,9 +190,21 @@ let parse_s3_signature_request ~body =
     raise (Invalid_argument ("Unknown method: " ^ method_))
 
 let parse_s3_response ~body =
-  let key_extractor = Str.regexp "<Key>\\([^<>]*\\)</Key>" in
-  let _ = Str.search_forward key_extractor body 0 in
-  Str.matched_group 1 body
+  try
+    let key_extractor = Str.regexp "<Key>\\([^<>]*\\)</Key>" in
+    let _ = Str.search_forward key_extractor body 0 in
+    Ok (Str.matched_group 1 body)
+  with
+  | Not_found -> Error "Key could not be extracted from S3 response."
+
+let parse_s3_url url =
+  try
+    let key_extractor = Str.regexp "/uploads/\\([a-z0-9]+\\)" in
+    let _ = Str.search_forward key_extractor url 0 in
+    Ok ("uploads/" ^ (Str.matched_group 1 url))
+  with
+  | Not_found -> Error "Key could not be extracted from S3 URL."
+
 
 let build_s3_signed_post_request ~api =
   let {Api.endpoint; key} = api in
