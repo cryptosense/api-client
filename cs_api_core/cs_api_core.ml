@@ -201,10 +201,9 @@ let parse_s3_url url =
   try
     let key_extractor = Str.regexp "/uploads/\\([a-z0-9]+\\)" in
     let _ = Str.search_forward key_extractor url 0 in
-    Ok ("uploads/" ^ (Str.matched_group 1 url))
+    Ok ("uploads/" ^ Str.matched_group 1 url)
   with
   | Not_found -> Error "Key could not be extracted from S3 URL."
-
 
 let build_s3_signed_post_request ~api =
   let {Api.endpoint; key} = api in
