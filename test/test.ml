@@ -46,6 +46,17 @@ let request_builder_tests =
            ~s3_method:Api.Method.Post
            ~s3_signature:[("key", "abc"); ("signature", "cde")]
            ~file:{path = "folder/path"; size = 10})
+  ; test_request ~name:"File upload PUT"
+      ~expected:
+        { url = "url"
+        ; header = []
+        ; method_ = Put
+        ; data = File {path = "folder/path"; size = 10} }
+      ~actual:
+        (Cs_api_core.build_file_upload_request ~s3_url:"url"
+           ~s3_method:Api.Method.Put
+           ~s3_signature:[("key", "abc"); ("signature", "cde")]
+           ~file:{path = "folder/path"; size = 10})
   ; test_request ~name:"Trace import request without slot name"
       ~expected:
         { url = "endpoint/api/v2"
@@ -131,4 +142,5 @@ let () =
   Alcotest.run "API Client"
     [ ("Request builders", request_builder_tests)
     ; ("Multipart writer", Test_writer.accumulator)
-    ; ("Graphql errors parsing", Test_api_io.tests) ]
+    ; ("Graphql errors parsing", Test_api_io.tests)
+    ; ("S3 Key extraction", Test_key_extractor.tests) ]
