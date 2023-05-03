@@ -15,8 +15,8 @@ main() {
     mkdir "$tmp/$archive"
 
     docker build \
-      --build-arg DISTRIB=centos-7-ocaml-4.13 \
-      --build-arg OCAML_VERSION=4.13 \
+      --build-arg DISTRIB=centos-7-ocaml-4.14 \
+      --build-arg OCAML_VERSION=4.14 \
       --build-arg VERSION=$version \
       --tag "$image_tag" \
       .

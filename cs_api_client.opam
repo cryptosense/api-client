@@ -19,7 +19,7 @@ depends: [
   "dune" {>= "2.7.0"}
   "lwt"
   "lwt_ppx"
-  "ocaml" {>= "4.13.0"}
+  "ocaml" {>= "4.14.0"}
   "ocamlformat" {= "0.25.1" & with-test}
   "ocurl" {< "0.9.2"}  # For compilation with old libcurl
   "ppx_deriving"
