@@ -3,7 +3,6 @@ module MultipartRequest : sig
 end
 
 val init : unit -> MultipartRequest.t
-
 val init_with_separator : string -> MultipartRequest.t
 
 val add_form_element :

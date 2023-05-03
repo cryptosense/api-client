@@ -21,7 +21,5 @@ val send_request :
   client:t -> Api.Request.t -> (Response.t, string) result Lwt.t
 
 val get_response : Response.t -> (string, string) result Lwt.t
-
 val get_graphql_errors : Yojson.Safe.t -> string list
-
 val get_response_graphql : Response.t -> (string, string) result Lwt.t

@@ -96,7 +96,6 @@ let element_separator_line separator element =
     ^ "\"\r\nContent-Type: application/octet-stream\r\n\r\n"
 
 let closing_line separator = "\r\n--" ^ separator ^ "--\r\n"
-
 let closing_line_size separator = String.length (closing_line separator)
 
 let element_to_string separator element =

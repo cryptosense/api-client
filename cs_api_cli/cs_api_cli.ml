@@ -37,9 +37,9 @@ let resolve_project_name ~client ~api ~project_id ~project_name =
 let rec analyze_trace ~client ~trace_id ~api ~count profile_id =
   let open Lwt.Infix in
   (let open Lwt_result.Infix in
-  Cs_api_core.build_analyze_request ~api ~trace_id ~profile_id
-  |> Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response_graphql)
+   Cs_api_core.build_analyze_request ~api ~trace_id ~profile_id
+   |> Cs_api_io.send_request ~client
+   >>= Cs_api_io.get_response_graphql)
   >>= function
   | Error "Not found" ->
     Printf.printf "Profile ID not found\n";
@@ -66,32 +66,37 @@ let upload_trace
     ~api =
   let open Lwt.Infix in
   (let open Lwt_result.Infix in
-  get_file trace_file >>= fun file ->
-  resolve_project_name ~client ~api ~project_id ~project_name
-  >>= fun project_id ->
-  Cs_api_core.build_s3_signed_post_request ~api
-  |> Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response_graphql
-  >>= (fun body ->
-        match Cs_api_core.parse_s3_signature_request ~body with
-        | None ->
-          Lwt.return (Error "Failed to parse S3 signature request response")
-        | Some (s3_url, s3_signature) ->
-          Lwt.return
-            (Ok
-               (Cs_api_core.build_file_upload_request ~s3_url ~s3_signature
-                  ~file)))
-  >>= Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response
-  >>= (fun body ->
-        let s3_key = Cs_api_core.parse_s3_response ~body in
-        let import_request =
-          Cs_api_core.build_trace_import_request ~slot_name ~api ~project_id
-            ~s3_key ~trace_name ~file
-        in
-        Lwt.return (Ok import_request))
-  >>= Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response_graphql)
+   get_file trace_file >>= fun file ->
+   resolve_project_name ~client ~api ~project_id ~project_name
+   >>= fun project_id ->
+   Cs_api_core.build_s3_signed_post_request ~api
+   |> Cs_api_io.send_request ~client
+   >>= Cs_api_io.get_response_graphql
+   >>= (fun body ->
+         match Cs_api_core.parse_s3_signature_request ~body with
+         | None ->
+           Lwt.return (Error "Failed to parse S3 signature request response")
+         | Some (s3_url, s3_method, s3_signature) ->
+           Lwt.return
+             (Ok
+                ( s3_url
+                , Cs_api_core.build_file_upload_request ~s3_url ~s3_method
+                    ~s3_signature ~file )))
+   >>= (fun (url, request) ->
+         ( Cs_api_io.send_request ~client request >>= fun response ->
+           Cs_api_io.get_response response )
+         >>= fun body ->
+         match Cs_api_core.parse_s3_response ~body with
+         | Ok s3_key -> Lwt_result.return s3_key
+         | Error _ -> Lwt.return (Cs_api_core.parse_s3_url url))
+   >>= (fun s3_key ->
+         let import_request =
+           Cs_api_core.build_trace_import_request ~slot_name ~api ~project_id
+             ~s3_key ~trace_name ~file
+         in
+         Lwt.return (Ok import_request))
+   >>= Cs_api_io.send_request ~client
+   >>= Cs_api_io.get_response_graphql)
   >>= function
   | Ok body ->
     let trace_id = Cs_api_core.get_id_from_trace_import_response_body ~body in
@@ -107,10 +112,10 @@ let upload_trace
 let list_profiles ~client ~api =
   let open Lwt.Infix in
   (let open Lwt_result.Infix in
-  Cs_api_core.build_list_profiles_request ~api
-  |> Cs_api_io.send_request ~client
-  >>= Cs_api_io.get_response_graphql
-  >|= fun body -> Cs_api_core.parse_list_profiles_response ~body)
+   Cs_api_core.build_list_profiles_request ~api
+   |> Cs_api_io.send_request ~client
+   >>= Cs_api_io.get_response_graphql
+   >|= fun body -> Cs_api_core.parse_list_profiles_response ~body)
   >|= function
   | Error message ->
     Printf.printf "%s\n" message;
@@ -184,7 +189,7 @@ let api_endpoint =
 
 let api_key =
   let doc = "API key" in
-  let env = Cmdliner.Arg.env_var "CRYPTOSENSE_API_KEY" ~doc in
+  let env = Cmdliner.Cmd.Env.info "CRYPTOSENSE_API_KEY" ~doc in
   let doc =
     "API key - can also be defined using the CRYPTOSENSE_API_KEY environment \
      variable"
@@ -259,10 +264,10 @@ let list_profiles_term =
     $ no_check_certificate)
 
 let list_profiles_info =
-  Cmdliner.Term.info "list-profiles"
+  Cmdliner.Cmd.info "list-profiles"
     ~doc:"List the available profiles of the Cryptosense Analyzer platform"
 
-let list_profiles_cmd = (list_profiles_term, list_profiles_info)
+let list_profiles_cmd = Cmdliner.Cmd.v list_profiles_info list_profiles_term
 
 let analyze_term =
   Cmdliner.Term.(
@@ -275,9 +280,9 @@ let analyze_term =
     $ no_check_certificate)
 
 let analyze_info =
-  Cmdliner.Term.info "analyze" ~doc:"Analyze a trace to create a report"
+  Cmdliner.Cmd.info "analyze" ~doc:"Analyze a trace to create a report"
 
-let analyze_cmd = (analyze_term, analyze_info)
+let analyze_cmd = Cmdliner.Cmd.v analyze_info analyze_term
 
 let upload_trace_term =
   Cmdliner.Term.(
@@ -294,19 +299,19 @@ let upload_trace_term =
     $ no_check_certificate)
 
 let upload_trace_info =
-  Cmdliner.Term.info "upload-trace"
+  Cmdliner.Cmd.info "upload-trace"
     ~doc:"Upload a trace to the Cryptosense Analyzer platform"
 
-let upload_trace_cmd = (upload_trace_term, upload_trace_info)
+let upload_trace_cmd = Cmdliner.Cmd.v upload_trace_info upload_trace_term
 
 let default_term =
   Cmdliner.Term.(ret (const (`Error (true, "Missing command"))))
 
-let default_info = Cmdliner.Term.info "cs-api" ~version:"%%VERSION_NUM%%"
-
-let default_cmd = (default_term, default_info)
+let default_info = Cmdliner.Cmd.info "cs-api" ~version:"%%VERSION_NUM%%"
+let default_cmd = default_info
 
 let () =
-  Cmdliner.Term.eval_choice default_cmd
+  Cmdliner.Cmd.group ~default:default_term default_cmd
     [analyze_cmd; list_profiles_cmd; upload_trace_cmd]
-  |> Cmdliner.Term.exit_status
+  |> Cmdliner.Cmd.eval'
+  |> Stdlib.exit

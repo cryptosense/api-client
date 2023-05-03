@@ -10,11 +10,11 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-18.04
+          - ubuntu-20.04
           - ubuntu-22.04
           - windows-latest
         ocaml-compiler:
-          - 4.13.x
+          - 4.14.x
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
@@ -33,7 +33,8 @@ jobs:
         with:
           ocaml-compiler: ${{ matrix.ocaml-compiler }}
           opam-repositories: |
-            default: 'https://github.com/fdopen/opam-repository-mingw.git#opam2'
+            opam-repository-mingw: https://github.com/ocaml-opam/opam-repository-mingw.git#sunset
+            default: https://github.com/ocaml/opam-repository.git
       - run: opam pin add cs_api_client.dev . --no-action
       - run: opam depext cs_api_client --yes --with-test
       - run: opam install . --deps-only --with-test
