@@ -88,8 +88,9 @@ let send_request ~client:{config; curl} {Api.Request.url; header; method_; data}
   Curl.setopt curl (Curl.CURLOPT_ERRORBUFFER error_message);
   try
     Curl.perform curl;
-    Lwt_result.return
-      {Response.code = Curl.get_responsecode curl; body = !response}
+    let r = {Response.code = Curl.get_responsecode curl; body = !response} in
+    Curl.reset curl;
+    Lwt_result.return r
   with
   | Curl.CurlException (_, _, error_name) ->
     Lwt_result.fail

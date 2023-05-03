@@ -77,7 +77,6 @@ let upload_trace
          | None ->
            Lwt.return (Error "Failed to parse S3 signature request response")
          | Some (s3_url, s3_method, s3_signature) ->
-           Printf.printf "Got S3 signature request paramters.\n";
            Lwt.return
              (Ok
                 ( s3_url
