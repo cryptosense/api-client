@@ -24,7 +24,7 @@ module Graphql = struct
 
   let create_trace =
     {|
-      mutation CreateTrace($projectId: ID!, $name: String!, $slotName: String, $key: String!, $size: Int!) {
+      mutation CreateTrace($projectId: ID!, $name: String!, $slotName: String, $key: String!, $size: BigInt!) {
         createTrace(
           input: {
             projectId: $projectId,
