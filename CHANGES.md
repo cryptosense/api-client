@@ -9,11 +9,23 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 _There are no unreleased changes at the moment._
 
-## [2.3.0] - 2023-10-19
+## [2.5.0] - 2023-10-19
 
 ### Fixed
 
 * Fix GraphQL query to be compatible with backend version 23.09.7 and onward.
+
+## [2.4.0] - 2023-06-03
+
+### Added
+ 
+* Added compatibility of the client with PUT uploads.
+
+## [2.3.0] - 2023-04-22
+
+### Added
+
+* Add `--slot-name` command-line argument.
 
 ## [2.2.0] - 2022-05-20
 
