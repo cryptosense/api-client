@@ -24,5 +24,12 @@ let tests =
 <PostResponse><Bucket>cryptosense-traces</Bucket><Key>uploads/784f2aa928404db3a958fbd779a44156</Key><ETag>&#34;82887f4dd13a80e182aa01efc0a59e9e&#34;</ETag><Location>http://localhost:9000/cryptosense-traces/uploads/784f2aa928404db3a958fbd779a44156</Location></PostResponse>
     |}
       ~expected:(Ok "uploads/784f2aa928404db3a958fbd779a44156")
+  ; test_body ~name:"Valid SeaweedFS body"
+      ~body:
+        {|
+<?xml version="1.0" encoding="UTF-8"?>
+<PostResponse><Bucket>cryptosense-traces</Bucket><xmlns:Key>uploads/784f2aa928404db3a958fbd779a44156</xmlns:Key><ETag>&#34;82887f4dd13a80e182aa01efc0a59e9e&#34;</ETag><Location>http://localhost:9000/cryptosense-traces/uploads/784f2aa928404db3a958fbd779a44156</Location></PostResponse>
+    |}
+      ~expected:(Ok "uploads/784f2aa928404db3a958fbd779a44156")
   ; test_body ~name:"Invalid body" ~body:"This\ndoes not\ncontain a key."
       ~expected:(Error "Key could not be extracted from S3 response.") ]

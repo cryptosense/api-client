@@ -191,7 +191,7 @@ let parse_s3_signature_request ~body =
 
 let parse_s3_response ~body =
   try
-    let key_extractor = Str.regexp "<Key>\\([^<>]*\\)</Key>" in
+    let key_extractor = Str.regexp "<.*Key>\\([^<>]*\\)</.*Key>" in
     let _ = Str.search_forward key_extractor body 0 in
     Ok (Str.matched_group 1 body)
   with
