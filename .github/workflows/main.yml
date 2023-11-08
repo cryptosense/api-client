@@ -18,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Retrieve new lists of system packages
         if: runner.os != 'Windows'
         run: sudo apt-get update
@@ -38,4 +38,13 @@ jobs:
       - run: opam pin add cs_api_client.dev . --no-action
       - run: opam depext cs_api_client --yes --with-test
       - run: opam install . --deps-only --with-test
+      - name: Tag substitution
+        run: bash ./ci/subst.bash "${{ github.ref_name }}"
+        if: startsWith(github.ref, 'refs/tags/')
       - run: opam exec -- dune build @all @fmt @runtest
+      - name: Upload compiled binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: cs-api-${{ matrix.os }}
+          path: _build/install/default/bin/*
+          if-no-files-found: error
