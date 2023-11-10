@@ -58,9 +58,11 @@ For more advanced configuration, please refer to the `curl` documentation.
 * Create a tag:
   * `git tag --message 'Version 1.2.3' 1.2.3`
   * `git push --tags`
+* Get the binaries from the ["Actions" tab] on GitHub
+* Select the pipeline associated with your tag and go to the summary
+* Download the binaries
 * Create a release on GitHub for the new tag.
-* Get the binaries from the [«Actions» tab] on GitHub
 * Upload the binaries to the release
 * Make sure the CHANGES.md file is up to date
 
-[«Actions» Tab]: https://github.com/cryptosense/api-client/actions
+["Actions" Tab]: https://github.com/cryptosense/api-client/actions
