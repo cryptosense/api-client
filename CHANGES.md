@@ -112,7 +112,11 @@ _There are no unreleased changes at the moment._
 
 Initial release.
 
-[Unreleased]: https://github.com/cryptosense/api-client/compare/2.2.0...HEAD
+[Unreleased]: https://github.com/cryptosense/api-client/compare/2.5.1...HEAD
+[2.5.1]: https://github.com/cryptosense/api-client/compare/2.5.0...2.5.1
+[2.5.0]: https://github.com/cryptosense/api-client/compare/2.4.0...2.5.0
+[2.4.0]: https://github.com/cryptosense/api-client/compare/2.3.0...2.4.0
+[2.3.0]: https://github.com/cryptosense/api-client/compare/2.2.0...2.3.0
 [2.2.0]: https://github.com/cryptosense/api-client/compare/2.1.0...2.2.0
 [2.1.0]: https://github.com/cryptosense/api-client/compare/2.0.2...2.1.0
 [2.0.2]: https://github.com/cryptosense/api-client/compare/2.0.1...2.0.2
