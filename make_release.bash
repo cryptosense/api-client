@@ -11,7 +11,7 @@ main() {
     local container_name="cs-api"
 
     local tmp=$(mktemp --directory)
-    local archive="cs-api-$version"
+    local archive="cs-api-$version-centos-7"
     mkdir "$tmp/$archive"
 
     docker build \
