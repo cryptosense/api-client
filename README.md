@@ -50,6 +50,39 @@ For more advanced configuration, please refer to the `curl` documentation.
 
 ## Development
 
+### System Requirements
+Install the following with your system's package manager
+ - opam
+ - make
+ - clang
+ - patch
+ - curl
+ - libcurl-devel
+
+Helper for opam install on linux:
+`bash -c "sh <(curl -fsSL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)"`
+
+
+### Setting up OPAM
+```bash
+opam init -y
+eval $(opam env --switch=default)
+```
+
+### OPAM Dependencies
+Install the following with `opam install ...`
+ - ocurl
+ - yojson
+ - containers
+ - base64
+ - ppx_deriving
+ - terminal_size
+ - lwt
+ - lwt_ppx
+ - dune
+
+## Build and Install 
+After ensuring the dependencies have been fulfilled:
 * Install the binary client from source: `dune build @install && dune install`
 * Run tests: `dune runtest`
 
