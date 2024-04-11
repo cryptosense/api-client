@@ -59,27 +59,15 @@ Install the following with your system's package manager
  - curl
  - libcurl-devel
 
-Helper for opam install on linux:
-`bash -c "sh <(curl -fsSL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)"`
-
 
 ### Setting up OPAM
 ```bash
-opam init -y
-eval $(opam env --switch=default)
+opam switch create . 4.14.1  # for OCaml 4.14.1
+eval $(opam env)
 ```
 
 ### OPAM Dependencies
-Install the following with `opam install ...`
- - ocurl
- - yojson
- - containers
- - base64
- - ppx_deriving
- - terminal_size
- - lwt
- - lwt_ppx
- - dune
+Install dependencies with `opam pin add -k path .`
 
 ## Build and Install 
 After ensuring the dependencies have been fulfilled:
