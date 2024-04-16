@@ -9,6 +9,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 _There are no unreleased changes at the moment._
 
+## [2.5.2] - 2024-04-16
+
+### Fixed
+
+* Fix trace uploading
+
 ## [2.5.1] - 2023-11-08
 
 ### Fixed
@@ -24,7 +30,7 @@ _There are no unreleased changes at the moment._
 ## [2.4.0] - 2023-06-03
 
 ### Added
- 
+
 * Added compatibility of the client with PUT uploads.
 
 ## [2.3.0] - 2023-04-22
