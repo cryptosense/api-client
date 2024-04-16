@@ -161,7 +161,7 @@ let parse_s3_signature_request ~body =
   let policy = formData |> member "policy" |> to_string_option in
   let acl = formData |> member "acl" |> to_string_option in
   let success_action_status =
-    formData |> member "success_action_status" |> to_int_option
+    formData |> member "success_action_status" |> to_string_option
   in
   url >>= fun url ->
   method_ >>= fun method_ ->
@@ -183,7 +183,7 @@ let parse_s3_signature_request ~body =
       ; ("key", key)
       ; ("policy", policy)
       ; ("acl", acl)
-      ; ("success_action_status", string_of_int success_action_status) ] )
+      ; ("success_action_status", success_action_status) ] )
   else if String.equal method_ "PUT" then
     Some (url, Api.Method.Put, [])
   else
