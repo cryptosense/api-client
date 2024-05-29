@@ -50,6 +50,27 @@ For more advanced configuration, please refer to the `curl` documentation.
 
 ## Development
 
+### System Requirements
+Install the following with your system's package manager
+ - opam
+ - make
+ - clang
+ - patch
+ - curl
+ - libcurl-devel
+
+
+### Setting up OPAM
+```bash
+opam switch create . 4.14.1  # for OCaml 4.14.1
+eval $(opam env)
+```
+
+### OPAM Dependencies
+Install dependencies with `opam pin add -k path .`
+
+## Build and Install 
+After ensuring the dependencies have been fulfilled:
 * Install the binary client from source: `dune build @install && dune install`
 * Run tests: `dune runtest`
 
