@@ -1,0 +1,69 @@
+#!/bin/bash
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# Download a file with `wget` and check its SHA-256 hash.
+#
+# To download with a hash check:
+#
+#     static-dl --url https://example.net/foo --hash abcdef... --out /path/to/file
+#
+# If the specified hash is not that of the downloaded file, the command will exit with a
+# non-zero code.
+#
+# If you don't know the hash of the file ahead of time, you can run the command without
+# the `--hash` parameter:
+#
+#     static-dl --url https://example.net/foo --out /path/to/file
+#
+# This will fail, as if you had provided an invalid hash, and print the actual hash of the
+# file on stderr.
+
+show_hash_and_fail() {
+    local url=$1; shift
+    local file=$1; shift
+
+    local hash=$(sha256sum "$file" | cut -f 1 -d " ")
+    echo "Actual hash for $url: $hash" >&2
+    return 1
+}
+
+main() {
+    local url=$1; shift
+    local hash_=$1; shift
+    local out=$1; shift
+
+    local tmp_dir=$(mktemp --directory)
+    local tmp_file="$tmp_dir/downloaded"
+
+    wget -nv -O "$tmp_file" "$url"
+    echo "$hash_ $tmp_file" | sha256sum --check --strict \
+        || show_hash_and_fail "$url" "$tmp_file"
+
+    mv "$tmp_file" "$out"
+    rm -rf "$tmp_dir"
+}
+
+hash_=ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+
+while [ "$#" -gt 0 ]; do
+    arg=$1; shift
+    case $arg in
+        --url)
+            url=$1; shift
+            ;;
+        --hash)
+            hash_=$1; shift
+            ;;
+        --out)
+            out=$1; shift
+            ;;
+        *)
+            echo "Unexpected arg: $arg" >&2
+            exit 1
+            ;;
+    esac
+done
+
+main "$url" "$hash_" "$out"
