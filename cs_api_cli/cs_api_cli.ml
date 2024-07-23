@@ -1,20 +1,76 @@
+module Errors = struct
+  let does_not_exist path = Printf.sprintf "Path does not exist: %s" path
+  let denied path = Printf.sprintf "Permission denied for path: %s" path
+  let busy path = Printf.sprintf "Path busy: %s" path
+  let empty_directory path = Printf.sprintf "Empty directory: %s" path
+
+  let too_many_files path =
+    Printf.sprintf "More than one file found in directory: %s" path
+
+  let unknown ~path ~error =
+    Printf.sprintf "I/O error for path (%s): %s" path (Printexc.to_string error)
+end
+
+module Read_dir = struct
+  type t =
+    | File of Api.File.t
+    | Not_a_directory
+    | Failure of string
+
+  let from_file path =
+    let open Lwt.Infix in
+    let open Lwt.Syntax in
+    try%lwt
+      let contents =
+        Lwt_unix.files_of_directory path
+        |> Lwt_stream.filter (fun filename ->
+               (not (String.equal filename "."))
+               && not (String.equal filename ".."))
+      in
+      let* first_two =
+        Lwt_stream.nget 2 contents >|= List.sort String.compare
+      in
+      List.iter
+        (fun filename -> Printf.printf "Found trace file: %s\n" filename)
+        first_two;
+      match first_two with
+      | [] -> Lwt.return (Failure (Errors.empty_directory path))
+      | [filename] ->
+        let file_path = Filename.concat path filename in
+        let* size = Lwt_io.file_length file_path in
+        Lwt.return (File {Api.File.path = file_path; size = Int64.to_int size})
+      | _ -> Lwt.return (Failure (Errors.too_many_files path))
+    with
+    | Unix.Unix_error (ENOTDIR, "opendir", _) -> Lwt.return Not_a_directory
+    | Unix.Unix_error (ENOENT, _, _) ->
+      Lwt.return (Failure (Errors.does_not_exist path))
+    | Unix.Unix_error (EACCES, _, _) ->
+      Lwt.return (Failure (Errors.denied path))
+    | Unix.Unix_error (EBUSY, _, _) -> Lwt.return (Failure (Errors.busy path))
+    | Unix.Unix_error _ as error ->
+      Lwt.return (Failure (Errors.unknown ~path ~error))
+end
+
+let get_normal_file path =
+  try%lwt
+    path
+    |> Lwt_io.file_length
+    |> Lwt.map Int64.to_int
+    |> Lwt.map (fun s -> {Api.File.path; size = s})
+    |> Lwt_result.ok
+  with
+  | Unix.Unix_error (ENOENT, "stat", _) ->
+    Lwt_result.fail (Errors.does_not_exist path)
+  | Unix.Unix_error (EACCES, _, _) -> Lwt_result.fail (Errors.denied path)
+  | Unix.Unix_error (EBUSY, _, _) -> Lwt_result.fail (Errors.busy path)
+  | Unix.Unix_error _ as error -> Lwt_result.fail (Errors.unknown ~path ~error)
+
 let get_file path =
-  Lwt.catch
-    (fun () ->
-      path
-      |> Lwt_io.file_length
-      |> Lwt.map Int64.to_int
-      |> Lwt.map (fun s -> {Api.File.path; size = s})
-      |> Lwt_result.ok)
-    (function
-      | Unix.Unix_error (Unix.ENOENT, "stat", _) ->
-        Lwt_result.fail ("File " ^ path ^ " not found")
-      | Unix.Unix_error (Unix.EACCES, _, _) ->
-        Lwt_result.fail ("Permission denied on " ^ path)
-      | Unix.Unix_error (Unix.EBUSY, _, _) ->
-        Lwt_result.fail ("File " ^ path ^ " was busy")
-      | _ ->
-        Lwt_result.fail ("Could not read file " ^ path ^ " for unknown reasons"))
+  (* Try to read the path as a directory file first, then as a normal file. *)
+  match%lwt Read_dir.from_file path with
+  | File file -> Lwt_result.return file
+  | Not_a_directory -> get_normal_file path
+  | Failure msg -> Lwt_result.fail msg
 
 let resolve_project_name ~client ~api ~project_id ~project_name =
   (* The user can provide an ID or a name. If a name is provided, look for the
@@ -128,10 +184,13 @@ let list_profiles ~client ~api =
     0
 
 let trace_file =
-  let doc = "Path to the file containing the trace" in
+  let doc =
+    "Path to the trace file to upload, or directory containing the trace file. \
+     If this is a directory, it must contain exactly one file."
+  in
   Cmdliner.Arg.(
     required
-    & opt (some non_dir_file) None
+    & opt (some file) None
     & info ["f"; "trace-file"] ~docv:"TRACEFILE" ~doc)
 
 let trace_id =
