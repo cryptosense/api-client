@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
+        with:
+          fetch-tags: true
       - name: Set up OCaml
         # We can't use setup-ocaml@v3 yet because ocurl can't be installed with it for now
         # (curl-config issue).
@@ -51,6 +53,8 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
+        with:
+          fetch-tags: true
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Set build version
