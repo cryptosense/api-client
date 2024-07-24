@@ -1,6 +1,6 @@
 # Cryptosense API Client
 
-[![Build Status](https://travis-ci.com/cryptosense/api-client.svg?branch=master)](https://travis-ci.com/cryptosense/api-client)
+[![Build status][github_status_badge]][github_actions_main]
 
 ## Usage
 
@@ -51,40 +51,48 @@ For more advanced configuration, please refer to the `curl` documentation.
 ## Development
 
 ### System Requirements
-Install the following with your system's package manager
- - opam
- - make
- - clang
- - patch
- - curl
- - libcurl-devel
 
+Install the following with your system's package manager
+
+- opam
+- make
+- clang
+- patch
+- curl
+- libcurl-devel
 
 ### Setting up OPAM
+
 ```bash
 opam switch create . 4.14.1  # for OCaml 4.14.1
 eval $(opam env)
 ```
 
 ### OPAM Dependencies
+
 Install dependencies with `opam pin add -k path .`
 
-## Build and Install 
+## Build and Install
+
 After ensuring the dependencies have been fulfilled:
-* Install the binary client from source: `dune build @install && dune install`
-* Run tests: `dune runtest`
+
+- Install the binary client from source: `dune build @install && dune install`
+- Run tests: `dune runtest`
 
 ## Release
 
-* Create a tag:
-  * `git tag --message 'Version 1.2.3' 1.2.3`
-  * `git push --tags`
-* Create a release on GitHub for the new tag.
-* Make sure the CHANGES.md file is up to date.
-* Get the binaries from the [Actions tab][github_actions] on GitHub.
-* Select the pipeline associated with your tag and go to the summary.
-* Download the artifacts.
-* Fix the Linux zip with `./ci/fix_zip.bash <path_to_zip>`
-* Upload the binaries to the release.
+- Make sure your changes are in `main` and the `CHANGELOG.md` file is up to date.
+- Create a tag for the updated `main`:
+  - `git tag --message 'Version 1.2.3' 1.2.3`
+  - `git push --tags --dry-run`
+  - `git push --tags`
+- Create a release on GitHub for the new tag.
+- Get the binaries from the [Actions tab][github_actions] on GitHub.
+- Select the pipeline associated with your tag and go to the summary.
+- Download the artifacts.
+- Fix the Linux zip with `./ci/fix_zip.bash <path_to_zip>`
+- Upload the binaries to the release.
 
 [github_actions]: https://github.com/cryptosense/api-client/actions
+[github_actions_main]: https://github.com/cryptosense/api-client/actions?query=branch%3Amain
+[github_status_badge]: https://github.com/cryptosense/api-client/actions/workflows/main.yml/badge.svg?branch=main
