@@ -57,6 +57,30 @@ let request_builder_tests =
            ~s3_method:Api.Method.Put
            ~s3_signature:[("key", "abc"); ("signature", "cde")]
            ~file:{path = "folder/path"; size = 10})
+  ; test_request ~name:"Trace import request without trace name"
+      ~expected:
+        { url = "endpoint/api/v2"
+        ; header = [("API-KEY", "KEY"); ("Content-Type", "application/json")]
+        ; method_ = Post
+        ; data =
+            Raw
+              (Yojson.Safe.to_string
+                 (`Assoc
+                   [ ("query", `String Cs_api_core.Graphql.create_trace)
+                   ; ( "variables"
+                     , `Assoc
+                         [ ("slotName", `Null)
+                         ; ( "projectId"
+                           , `String
+                               (Cs_api_core.Graphql.to_global_id
+                                  ~type_:"Project" ~id:9) )
+                         ; ("name", `Null)
+                         ; ("key", `String "abc")
+                         ; ("size", `Int 10) ] ) ])) }
+      ~actual:
+        (Cs_api_core.build_trace_import_request ~api ~project_id:9
+           ~slot_name:None ~s3_key:"abc" ~trace_name:None
+           ~file:{path = "path"; size = 10})
   ; test_request ~name:"Trace import request without slot name"
       ~expected:
         { url = "endpoint/api/v2"
@@ -79,7 +103,7 @@ let request_builder_tests =
                          ; ("size", `Int 10) ] ) ])) }
       ~actual:
         (Cs_api_core.build_trace_import_request ~api ~project_id:9
-           ~slot_name:None ~s3_key:"abc" ~trace_name:"cde"
+           ~slot_name:None ~s3_key:"abc" ~trace_name:(Some "cde")
            ~file:{path = "path"; size = 10})
   ; test_request ~name:"Trace import request with slot name"
       ~expected:
@@ -103,7 +127,7 @@ let request_builder_tests =
                          ; ("size", `Int 10) ] ) ])) }
       ~actual:
         (Cs_api_core.build_trace_import_request ~api ~project_id:9
-           ~slot_name:(Some "name") ~s3_key:"abc" ~trace_name:"cde"
+           ~slot_name:(Some "name") ~s3_key:"abc" ~trace_name:(Some "cde")
            ~file:{path = "path"; size = 10})
   ; test_request ~name:"Trace analysis request"
       ~expected:

@@ -198,9 +198,12 @@ let trace_id =
   Cmdliner.Arg.(required & opt (some int) None & info ["trace-id"] ~doc)
 
 let trace_name =
-  let doc = "Name of the trace" in
+  let doc =
+    "Name of the trace to use in the server. If not provided, the server will \
+     pick the name."
+  in
   Cmdliner.Arg.(
-    required
+    value
     & opt (some string) None
     & info ["n"; "trace-name"] ~docv:"TRACENAME" ~doc)
 

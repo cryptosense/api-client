@@ -36,7 +36,7 @@ val build_trace_import_request :
   -> project_id:int
   -> slot_name:string option
   -> s3_key:string
-  -> trace_name:string
+  -> trace_name:string option
   -> file:Api.File.t
   -> Api.Request.t
 

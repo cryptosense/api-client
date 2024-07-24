@@ -253,6 +253,11 @@ let build_trace_import_request
     | Some name -> `String name
     | None -> `Null
   in
+  let trace_name_var =
+    match trace_name with
+    | Some name -> `String name
+    | None -> `Null
+  in
   { Api.Request.url = endpoint ^ "/api/v2"
   ; header = [("API-KEY", key); ("Content-Type", "application/json")]
   ; method_ = Post
@@ -268,7 +273,7 @@ let build_trace_import_request
                      , `String
                          (Graphql.to_global_id ~type_:"Project" ~id:project_id)
                      )
-                   ; ("name", `String trace_name)
+                   ; ("name", trace_name_var)
                    ; ("key", `String s3_key)
                    ; ("size", `Int size) ] ) ])) }
 
