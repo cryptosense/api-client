@@ -12,9 +12,6 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
-      - name: Fetch tags
-        if: startsWith(github.ref, 'refs/tags/')  # https://github.com/actions/checkout/issues/1467
-        run: git fetch --tags
       - name: Set up OCaml
         # We can't use setup-ocaml@v3 yet because ocurl can't be installed with it for now
         # (curl-config issue).
@@ -24,16 +21,17 @@ jobs:
           opam-repositories: |
             opam-repository-mingw: https://github.com/ocaml-opam/opam-repository-mingw.git#sunset
             default: https://github.com/ocaml/opam-repository.git
+      - name: Set build version
+        id: build_version
+        run: |
+          echo "value=$(bash ci/get_version.bash "${{ github.ref_type }}" "${{ github.ref_name }}")" >> $env:GITHUB_OUTPUT
+      - name: Using version ${{ steps.build_version.outputs.value }}
+        run: |
+          echo "Version number: ${{ steps.build_version.outputs.value }}"
       - name: Pin the dependencies
         run: opam pin add cs_api_client.dev --no-action .
       - name: Install the dependencies
         run: opam install --deps-only --with-test .
-      - name: Set build version
-        id: build_version
-        run: echo "value=$(git describe --always HEAD)" >> $env:GITHUB_OUTPUT
-      - name: Using version ${{ steps.build_version.outputs.value }}
-        run: |
-          echo "Version number: ${{ steps.build_version.outputs.value }}"
       - name: Insert the version number
         run: ./ci/subst.bash "${{ steps.build_version.outputs.value }}"
         if: startsWith(github.ref, 'refs/tags/')
@@ -54,14 +52,12 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
-      - name: Fetch tags
-        if: startsWith(github.ref, 'refs/tags/')  # https://github.com/actions/checkout/issues/1467
-        run: git fetch --tags
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Set build version
         id: build_version
-        run: echo "value=$(git describe --always HEAD)" >> $GITHUB_OUTPUT
+        run: |
+          echo "value=$(./ci/get_version.bash "${{ github.ref_type }}" "${{ github.ref_name }}")" >> $GITHUB_OUTPUT
       - name: Using version ${{ steps.build_version.outputs.value }}
         run: |
           echo "Version number: ${{ steps.build_version.outputs.value }}"
