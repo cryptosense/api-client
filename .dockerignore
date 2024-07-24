@@ -1,7 +1,6 @@
 **/.merlin
 **/_build
+**/_opam
 
 .git
 .github
-docker
-make_release.bash

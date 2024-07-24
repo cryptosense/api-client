@@ -5,46 +5,82 @@ on:
   - push
 
 jobs:
-  build:
+  windows:
     strategy:
       fail-fast: false
-      matrix:
-        os:
-          - ubuntu-20.04
-          - ubuntu-22.04
-          - windows-latest
-        ocaml-compiler:
-          - 4.14.x
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     steps:
-      - name: Checkout code
+      - name: Checkout the code
         uses: actions/checkout@v4
-      - name: Retrieve new lists of system packages
-        if: runner.os != 'Windows'
-        run: sudo apt-get update
-      - name: Use OCaml ${{ matrix.ocaml-compiler }}
-        if: runner.os != 'Windows'
+      - name: Set up OCaml
+        # We can't use setup-ocaml@v3 yet because ocurl can't be installed with it for now
+        # (curl-config issue).
         uses: ocaml/setup-ocaml@v2
         with:
-          ocaml-compiler: ${{ matrix.ocaml-compiler }}
-      - name: Use OCaml ${{ matrix.ocaml-compiler }}
-        if: runner.os == 'Windows'
-        uses: ocaml/setup-ocaml@v2
-        with:
-          ocaml-compiler: ${{ matrix.ocaml-compiler }}
+          ocaml-compiler: 4.14.x
           opam-repositories: |
             opam-repository-mingw: https://github.com/ocaml-opam/opam-repository-mingw.git#sunset
             default: https://github.com/ocaml/opam-repository.git
-      - run: opam pin add cs_api_client.dev . --no-action
-      - run: opam depext cs_api_client --yes --with-test
-      - run: opam install . --deps-only --with-test
-      - name: Tag substitution
-        run: bash ./ci/subst.bash "${{ github.ref_name }}"
+      - name: Pin the dependencies
+        run: opam pin add cs_api_client.dev --no-action .
+      - name: Install the dependencies
+        run: opam install --deps-only --with-test .
+      - name: Set build version
+        id: build_version
+        run: echo "value=$(git describe --always HEAD)" >> $env:GITHUB_OUTPUT
+      - name: Using version ${{ steps.build_version.outputs.value }}
+        run: |
+          echo "Version number: ${{ steps.build_version.outputs.value }}"
+      - name: Insert the version number
+        run: ./ci/subst.bash "${{ steps.build_version.outputs.value }}"
         if: startsWith(github.ref, 'refs/tags/')
-      - run: opam exec -- dune build @all @fmt @runtest
-      - name: Upload compiled binary
-        uses: actions/upload-artifact@v3
+      - name: Build the executable and run the tests
+        run: opam exec -- dune build @all @fmt @runtest
+      - name: Copy the artifacts to a directory (in powershell)
+        run: |
+          New-Item -ItemType Directory -ErrorAction SilentlyContinue build/cs-api-${{ steps.build_version.outputs.value }}-windows
+          Copy-Item _build/install/default/bin/cs-api.exe build/cs-api-${{ steps.build_version.outputs.value }}-windows/
+      - name: Upload the compiled binary
+        uses: actions/upload-artifact@v4
         with:
-          name: cs-api-${{ matrix.os }}
-          path: _build/install/default/bin/*
+          name: cs-api-${{ steps.build_version.outputs.value }}-windows
+          path: build/*
+          if-no-files-found: error
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Set build version
+        id: build_version
+        run: echo "value=$(git describe --always HEAD)" >> $GITHUB_OUTPUT
+      - name: Using version ${{ steps.build_version.outputs.value }}
+        run: |
+          echo "Version number: ${{ steps.build_version.outputs.value }}"
+      - name: Build the executable
+        uses: docker/build-push-action@v6
+        with:
+          build-args: |
+            OPAM_BASE=opam-centos-7
+            OCAML_VERSION=4.14.2
+            VERSION=${{ steps.build_version.outputs.value }}
+          target: main
+          load: true
+          tags: cs-api
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Run the tests
+        run: docker run --rm cs-api opam exec -- dune build @all @fmt @runtest
+      - name: Copy the artifacts to a directory
+        run: |
+          mkdir --parents "build/cs-api-${{ steps.build_version.outputs.value }}"-linux
+          docker create --name cs-api cs-api
+          docker cp cs-api:/home/main/build/cs-api "build/cs-api-${{ steps.build_version.outputs.value }}"-linux
+      - name: Upload the compiled binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: cs-api-${{ steps.build_version.outputs.value }}-linux
+          path: build/*
           if-no-files-found: error

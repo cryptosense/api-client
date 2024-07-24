@@ -1,8 +1,4 @@
-(executables
- (names cs_api_cli)
+(executable
+ (public_name cs-api)
+ (name cs_api_cli)
  (libraries cmdliner cs_api_io cs_api_core))
-
-(install
- (section bin)
- (files
-  (cs_api_cli.exe as cs-api)))
