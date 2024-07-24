@@ -7,7 +7,11 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-_There are no unreleased changes at the moment._
+### Added
+
+* Add the ability for `--filename` to accept a directory. The client will upload the file
+  in that directory only if it contains a single file.
+* Add more details to error messages if the client fails to read a directory or trace file.
 
 ## [2.5.2] - 2024-04-16
 
