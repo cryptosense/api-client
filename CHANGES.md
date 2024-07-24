@@ -13,6 +13,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   in that directory only if it contains a single file.
 * Add more details to error messages if the client fails to read a directory or trace file.
 
+### Changed
+
+* Make `--trace-name` optional. If not provided, the server will pick the name for the
+  newly uploaded trace. This is useful because trace names must be unique within a project
+  on the server, and users may not know what names are already taken.
+
 ## [2.5.2] - 2024-04-16
 
 ### Fixed
