@@ -1,0 +1,38 @@
+opam-version: "2.0"
+synopsis: "Virtual package relying on a libcurl system installation"
+description:
+  "This package can only install if the libcurl is installed on the system."
+maintainer: "blue-prawn"
+authors: "Daniel Stenberg"
+license: "BSD-like"
+homepage: "http://curl.haxx.se/"
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+flags: conf
+build: [
+  ["pkgconf" {os = "win32" & os-distribution = "cygwin"}
+   "--personality=i686-w64-mingw32" {os = "win32" & os-distribution = "cygwin" & host-arch-x86_32:installed}
+   "--personality=x86_64-w64-mingw32" {os = "win32" & os-distribution = "cygwin" & host-arch-x86_64:installed}
+   "pkg-config" {os != "win32" | os-distribution != "cygwin"}
+   "--print-errors" "--exists" "libcurl"]
+]
+depends: [
+  "conf-pkg-config" {build}
+  ("host-arch-x86_32" {os = "win32" & os-distribution != "cygwinports"} & "conf-mingw-w64-curl-i686" {os = "win32" & os-distribution != "cygwinports"} |
+   "host-arch-x86_64" {os = "win32" & os-distribution != "cygwinports"} & "conf-mingw-w64-curl-x86_64" {os = "win32" & os-distribution != "cygwinports"})
+]
+depexts: [
+  ["libcurl4-gnutls-dev"] {os-family = "debian"}
+  ["libcurl4-gnutls-dev"] {os-family = "ubuntu"}
+  ["libcurl-devel"] {os-distribution = "mageia"}
+  ["libcurl-devel" "openssl-devel"] {os-distribution = "centos"}
+  ["curl"] {os-distribution = "nixos"}
+  ["curl"] {os-distribution = "arch"}
+  ["curl"] {os = "win32" & os-distribution = "cygwinports"}
+  ["curl-dev"] {os-distribution = "alpine"}
+  ["libcurl-devel"] {os-family = "suse" | os-family = "opensuse"}
+  ["libcurl-devel"] {os-distribution = "fedora"}
+  ["libcurl-devel"] {os-distribution = "ol"}
+  ["curl"] {os-distribution = "homebrew" & os = "macos"}
+  ["curl"] {os-distribution = "macports" & os = "macos"}
+  ["curl"] {os = "freebsd"}
+]
