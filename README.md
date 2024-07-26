@@ -79,6 +79,13 @@ After ensuring the dependencies have been fulfilled:
 - Install the binary client from source: `dune build @install && dune install`
 - Run tests: `dune runtest`
 
+## Update dependencies
+
+- Modify `cs_api.opam` and update your packages.
+- Update the lock files:
+  - On Linux: Run `opam lock .`.
+  - On Windows: Run `opam lock --lock-suffix locked-win .`.
+
 ## Release
 
 - Make sure your changes are in `main` and the `CHANGELOG.md` file is up to date.
