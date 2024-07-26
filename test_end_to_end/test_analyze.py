@@ -37,11 +37,11 @@ def test_upload_and_analyze_file_ok(
         .replace(regex=r"Report for [a-zA-Z0-9:\-.]+", text="Report for <trace_name>")
     ) == util.Result.clean(
         code=0,
-        stdout="""
-            Trace <trace_id> uploaded
-            Report 'Report for <trace_name>' of ID <trace_id> is being generated
+        stdout="",
+        stderr="""
+            INFO     Trace <trace_id> uploaded
+            INFO     Report 'Report for <trace_name>' of ID <trace_id> is being generated
         """,
-        stderr="",
     )
 
 
@@ -72,9 +72,9 @@ def test_upload_and_analyze_file_failure(
         )
     ) == util.Result.clean(
         code=1,
-        stdout="""
-            Trace <trace_id> uploaded
-            This trace is still being processed
+        stdout="",
+        stderr="""
+            INFO     Trace <trace_id> uploaded
+            ERROR    This trace is still being processed
         """,
-        stderr="",
     )

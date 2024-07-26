@@ -40,6 +40,9 @@ module Method : sig
     | Get
     | Post
     | Put
+
+  val to_string : t -> string
+  (** Human-readable representation of an HTTP method. *)
 end
 
 module Request : sig

@@ -43,6 +43,9 @@ def good_connection_args(server: Server) -> Mapping[str, Any]:
 
 def cmd_upload_trace(
     executable: str,
+    color: str | None = None,
+    quiet: bool = False,
+    verbose: bool = False,
     api_base_url: str | None = None,
     api_key: str | None = None,
     no_check_certificate: bool = False,
@@ -61,6 +64,15 @@ def cmd_upload_trace(
 
     cli = list(cmd(executable))
     cli.extend(["upload-trace"])
+
+    if color is not None:
+        cli.extend(["--color", color])
+
+    if quiet:
+        cli.extend(["--quiet"])
+
+    if verbose:
+        cli.extend(["--verbose"])
 
     if api_base_url is not None:
         cli.extend(["--api-base-url", api_base_url])

@@ -1,5 +1,4 @@
 import os
-import re
 import secrets
 import subprocess
 from pathlib import Path
@@ -27,16 +26,17 @@ def test_upload_file(executable: str, server: Server, tmp_path: Path) -> None:
         stderr=subprocess.PIPE,
     )
 
-    assert result.returncode == 0
-    stdout = re.sub(
-        r"Trace \d+ uploaded", "Trace <trace_id> uploaded", result.stdout.decode()
+    assert (
+        util.Result.from_subprocess(result).replace(
+            regex=r"Trace \d+ uploaded", text="Trace <trace_id> uploaded"
+        )
+    ) == util.Result.clean(
+        code=0,
+        stdout="",
+        stderr="""
+            INFO     Trace <trace_id> uploaded
+        """,
     )
-    assert stdout == util.output_str(
-        """
-        Trace <trace_id> uploaded
-        """
-    )
-    assert result.stderr.decode() == ""
 
 
 def test_upload_file_from_directory(
@@ -61,17 +61,18 @@ def test_upload_file_from_directory(
         stderr=subprocess.PIPE,
     )
 
-    assert result.returncode == 0
-    stdout = re.sub(
-        r"Trace \d+ uploaded", "Trace <trace_id> uploaded", result.stdout.decode()
+    assert (
+        util.Result.from_subprocess(result).replace(
+            regex=r"Trace \d+ uploaded", text="Trace <trace_id> uploaded"
+        )
+    ) == util.Result.clean(
+        code=0,
+        stdout="",
+        stderr="""
+            INFO     Found trace file: trace.cst.gz
+            INFO     Trace <trace_id> uploaded
+        """,
     )
-    assert stdout == util.output_str(
-        """
-        Found trace file: trace.cst.gz
-        Trace <trace_id> uploaded
-        """
-    )
-    assert result.stderr.decode() == ""
 
 
 def test_upload_file_with_name(executable: str, server: Server, tmp_path: Path) -> None:
@@ -94,16 +95,17 @@ def test_upload_file_with_name(executable: str, server: Server, tmp_path: Path) 
         stderr=subprocess.PIPE,
     )
 
-    assert result.returncode == 0
-    stdout = re.sub(
-        r"Trace \d+ uploaded", "Trace <trace_id> uploaded", result.stdout.decode()
+    assert (
+        util.Result.from_subprocess(result).replace(
+            regex=r"Trace \d+ uploaded", text="Trace <trace_id> uploaded"
+        )
+    ) == util.Result.clean(
+        code=0,
+        stdout="",
+        stderr="""
+            INFO     Trace <trace_id> uploaded
+        """,
     )
-    assert stdout == util.output_str(
-        """
-        Trace <trace_id> uploaded
-        """
-    )
-    assert result.stderr.decode() == ""
 
 
 def test_upload_file_with_existing_name(
@@ -130,16 +132,17 @@ def test_upload_file_with_existing_name(
         stderr=subprocess.PIPE,
     )
 
-    assert result.returncode == 0
-    stdout = re.sub(
-        r"Trace \d+ uploaded", "Trace <trace_id> uploaded", result.stdout.decode()
+    assert (
+        util.Result.from_subprocess(result).replace(
+            regex=r"Trace \d+ uploaded", text="Trace <trace_id> uploaded"
+        )
+    ) == util.Result.clean(
+        code=0,
+        stdout="",
+        stderr="""
+            INFO     Trace <trace_id> uploaded
+        """,
     )
-    assert stdout == util.output_str(
-        """
-        Trace <trace_id> uploaded
-        """
-    )
-    assert result.stderr.decode() == ""
 
     result = subprocess.run(
         util.cmd_upload_trace(
@@ -157,8 +160,8 @@ def test_upload_file_with_existing_name(
 
     assert (util.Result.from_subprocess(result)) == util.Result.clean(
         code=1,
-        stdout="""
-            A trace with the same name already exists
+        stdout="",
+        stderr="""
+            ERROR    A trace with the same name already exists
         """,
-        stderr="",
     )

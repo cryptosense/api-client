@@ -17,6 +17,7 @@ depends: [
   "cmdliner" {>= "1.2.0"}
   "containers" {>= "3.6"}
   "dune" {>= "2.7.0"}
+  "logs" {>= "0.7.0"}
   "lwt"
   "lwt_ppx"
   "ocaml" {>= "4.14.0"}

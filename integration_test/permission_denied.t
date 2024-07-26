@@ -11,7 +11,7 @@ Try to upload traces from that directory:
   >     --slot-name slot-0 \
   >     --trace-name trace-0 \
   >     --trace-file trace-dir
-  Permission denied for path: trace-dir
+  ERROR    Permission denied for path: trace-dir
   [1]
 
 Restore the permissions on the directory so that Dune can clean up the test directory:

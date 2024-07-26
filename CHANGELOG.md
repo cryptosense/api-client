@@ -13,6 +13,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   by the client).
 - Fix an API server error when `--filename` is absent.
 
+### Added
+
+
+- Add more logging. The verbosity is controlled with two new flags:
+  `--quiet` and `--verbose`. The coloring is controlled with a new parameter: `--color`.
+
 ## [2.6.0] - 2024-07-24
 
 ### Added

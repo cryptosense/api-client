@@ -10,5 +10,5 @@ Try to upload traces from that directory:
   >     --slot-name slot-0 \
   >     --trace-name trace-0 \
   >     --trace-file trace-dir
-  Empty directory: trace-dir
+  ERROR    Empty directory: trace-dir
   [1]

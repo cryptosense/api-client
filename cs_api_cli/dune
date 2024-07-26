@@ -1,6 +1,6 @@
 (executable
  (public_name cs-api)
  (name cs_api_cli)
- (libraries cmdliner cs_api_io cs_api_core)
+ (libraries cmdliner cs_api_io cs_api_core logs.fmt fmt.tty)
  (preprocess
   (pps lwt_ppx)))
