@@ -4,13 +4,10 @@ import secrets
 import subprocess
 from pathlib import Path
 
-import pytest
-
 from . import util
 from .conftest import Server
 
 
-@pytest.mark.xfail(reason="Known bug when `--trace-name` is absent")
 def test_upload_file(executable: str, server: Server, tmp_path: Path) -> None:
     trace_file = tmp_path / "trace.cst.gz"
 

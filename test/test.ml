@@ -66,7 +66,7 @@ let request_builder_tests =
             Raw
               (Yojson.Safe.to_string
                  (`Assoc
-                   [ ("query", `String Cs_api_core.Graphql.create_trace)
+                   [ ("query", `String Cs_api_core.Graphql.create_trace_no_name)
                    ; ( "variables"
                      , `Assoc
                          [ ("slotName", `Null)
