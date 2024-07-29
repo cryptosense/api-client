@@ -41,7 +41,8 @@ module Read_dir = struct
         Lwt.return (File {Api.File.path = file_path; size = Int64.to_int size})
       | _ -> Lwt.return (Failure (Errors.too_many_files path))
     with
-    | Unix.Unix_error (ENOTDIR, "opendir", _) -> Lwt.return Not_a_directory
+    | Unix.Unix_error ((ENOTDIR | EUNKNOWNERR -267), "opendir", _) ->
+      Lwt.return Not_a_directory
     | Unix.Unix_error (ENOENT, _, _) ->
       Lwt.return (Failure (Errors.does_not_exist path))
     | Unix.Unix_error (EACCES, _, _) ->

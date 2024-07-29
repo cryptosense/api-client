@@ -7,7 +7,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
--_There are no unreleased changes at the moment._
+- Fix a bug which would prevent upload from working on Windows (an error would be returned
+  by the client).
 
 ## [2.6.0] - 2024-07-24
 

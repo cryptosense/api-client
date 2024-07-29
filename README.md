@@ -50,41 +50,93 @@ For more advanced configuration, please refer to the `curl` documentation.
 
 ## Development
 
-### System Requirements
+Make sure you are using Opam 2.2 or later. You will need basic
+tools like:
 
-Install the following with your system's package manager
-
-- opam
 - make
 - clang
 - patch
 - curl
-- libcurl-devel
 
-### Setting up OPAM
+### Installing OCaml dependencies
 
 ```bash
-opam switch create . 4.14.1  # for OCaml 4.14.1
-eval $(opam env)
+opam switch create --no-action . 4.14.2
+opam install --deps-only --with-test --with-dev-setup --working-dir .
+eval $(opam env)  # This is for Linux (use the appropriate alternative on Windows).
 ```
 
-### OPAM Dependencies
+### Installing Python dependencies
 
-Install dependencies with `opam pin add -k path .`
+For end-to-end tests, we have Python dependencies managed by Poetry:
 
-## Build and Install
+```bash
+# Create a virtual environment (unless you'd like Poetry to manage it)
+poetry install
+```
 
-After ensuring the dependencies have been fulfilled:
+For later steps, ensure the virtual environment is activated.
 
-- Install the binary client from source: `dune build @install && dune install`
-- Run tests: `dune runtest`
+## Building
 
-## Update dependencies
+To build the executable, run:
+
+```bash
+dune build @install && dune install`
+```
+
+## Quality
+
+### OCaml code
+
+```bash
+dune build @check @runtest
+```
+
+### Formatting
+
+```bash
+make format
+```
+
+### End-to-end tests
+
+End-to-end tests are run with the Python test suite and should be checked on both Linux
+and Windows.
+
+Most of the tests require at least one running instance of the AQtive Guard API server.
+Each instance is defined as an server in a TOML file. Tests for which pytest can't find a
+suitable environment will be skipped.
+
+Usage:
+
+```bash
+pytest \
+    --executable=/path/to/cs-api \
+    --server=/path/to/dev.toml \
+    --server=/path/to/other_env.toml
+```
+
+Those tests can run either Linux and Windows. They can be run in parallel (e.g. `-n 4`).
+
+Sample TOML file:
+
+```toml
+api_url = "https://localhost:8443"
+api_key = "<secret-api-key>"
+trusted_cert = false
+ca_path = "/path/to/self-signed-cert.pem"
+profile_id = 1
+project_id = 3
+slot_name = "cs-api-test"
+```
+
+## Updating dependencies
 
 - Modify `cs_api.opam` and update your packages.
 - Update the lock files:
   - On Linux: Run `opam lock .`.
-  - On Windows: Run `opam lock --lock-suffix locked-win .`.
+  - On Windows: Run `opam lock --lock-suffix win.locked .`.
 
 ## Release
 
@@ -95,6 +147,7 @@ After ensuring the dependencies have been fulfilled:
   - `git push --tags`
 - Create a release on GitHub for the new tag.
 - Get the binaries from the [Actions tab][github_actions] on GitHub.
+- Test the binaries with the Python test suite on Windows and Linux.
 - Select the pipeline associated with your tag and go to the summary.
 - Download the artifacts.
 - Fix the Linux zip with `./ci/fix_zip.bash <path_to_zip>`
