@@ -37,7 +37,7 @@ jobs:
         run: ./ci/subst.bash "${{ steps.build_version.outputs.value }}"
         if: startsWith(github.ref, 'refs/tags/')
       - name: Build the executable and run the tests
-        run: opam exec -- dune build @all @fmt @runtest
+        run: opam exec -- dune build @all @runtest
       - name: Copy the artifacts to a directory (in powershell)
         run: |
           New-Item -ItemType Directory -ErrorAction SilentlyContinue build/cs-api-${{ steps.build_version.outputs.value }}-windows
