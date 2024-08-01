@@ -13,18 +13,19 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
       - name: Set up OCaml
-        # We can't use setup-ocaml@v3 yet because ocurl can't be installed with it for now
-        # (curl-config issue).
-        uses: ocaml/setup-ocaml@v2
+        uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: 4.14.x
           opam-repositories: |
-            opam-repository-mingw: https://github.com/ocaml-opam/opam-repository-mingw.git#sunset
+            local: opam_win_repo
             default: https://github.com/ocaml/opam-repository.git
       - name: Set build version
         id: build_version
+        shell: bash
+        env:
+          SHELLOPTS: igncr
         run: |
-          echo "value=$(bash ci/get_version.bash "${{ github.ref_type }}" "${{ github.ref_name }}")" >> $env:GITHUB_OUTPUT
+          echo "value=$(bash ci/get_version.bash "${{ github.ref_type }}" "${{ github.ref_name }}")" >> $GITHUB_OUTPUT
       - name: Using version ${{ steps.build_version.outputs.value }}
         run: |
           echo "Version number: ${{ steps.build_version.outputs.value }}"
