@@ -30,9 +30,9 @@ jobs:
         run: |
           echo "Version number: ${{ steps.build_version.outputs.value }}"
       - name: Pin the dependencies
-        run: opam pin add cs_api_client.dev --no-action .
+        run: opam pin add --no-action --kind path --locked --lock-suffix win.locked .
       - name: Install the dependencies
-        run: opam install --deps-only --with-test .
+        run: opam install --deps-only --with-test --locked --lock-suffix win.locked cs_api_client
       - name: Insert the version number
         run: ./ci/subst.bash "${{ steps.build_version.outputs.value }}"
         if: startsWith(github.ref, 'refs/tags/')
