@@ -1,4 +1,6 @@
+**/*.pyc
 **/.merlin
+**/__pycache__
 **/_build
 **/_opam
 
