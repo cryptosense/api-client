@@ -11,6 +11,7 @@ import tomllib
 class Server:
     api_key: str
     api_url: str
+    is_default_url: bool
     trusted_cert: bool
     ca_path: str | None
     project_id: int
@@ -43,6 +44,7 @@ def parse_config(config_dict: Mapping[str, Any], path: str) -> Server:
         return Server(
             api_key=config_dict["api_key"],
             api_url=config_dict["api_url"],
+            is_default_url=config_dict["is_default_url"],
             trusted_cert=config_dict["trusted_cert"],
             ca_path=config_dict.get("ca_path"),
             profile_id=config_dict["profile_id"],
