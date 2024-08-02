@@ -159,7 +159,8 @@ COPY --chown="$user:$user" cs_api_client.opam cs_api_client.opam.locked .
 RUN opam pin add --yes --no-action --kind path --locked . \
     && (. /etc/os-release && [ "$ID" = 'alpine' ] && sudo apk update || true) \
     && opam update \
-    && opam install --confirm-level unsafe-yes --deps-only --with-test --locked cs_api_client \
+    && opam install --confirm-level unsafe-yes \
+        --deps-only --with-test --with-dev-setup --locked cs_api_client \
     && opam clean --all-switches --download-cache --logs --repo-cache \
     && (. /etc/os-release && [ "$ID" = 'alpine' ] && sudo apk cache clean || true)
 
