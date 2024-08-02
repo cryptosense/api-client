@@ -1,3 +1,5 @@
+module Log = Log
+
 module Graphql = struct
   let to_global_id ~type_ ~id =
     Printf.sprintf "%s:%d" type_ id |> Base64.encode |> Result.get_ok

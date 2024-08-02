@@ -11,7 +11,7 @@ Try to upload traces from that directory:
   >     --slot-name slot-0 \
   >     --trace-name trace-0 \
   >     --trace-file trace-dir
-  Found trace file: trace-0
-  Found trace file: trace-1
-  More than one file found in directory: trace-dir
+  INFO     Found trace file: trace-0
+  INFO     Found trace file: trace-1
+  ERROR    More than one file found in directory: trace-dir
   [1]

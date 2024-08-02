@@ -1,3 +1,7 @@
+module Log = Cs_api_core.Log.Make (struct
+  let section = __MODULE__
+end)
+
 module Config = struct
   type t =
     { verify : bool
@@ -58,6 +62,7 @@ let build_file_reader path =
 
 let send_request ~client:{config; curl} {Api.Request.url; header; method_; data}
     =
+  Log.debug "HTTP request: %s %s" (Api.Method.to_string method_) url;
   let (response, response_callback) = response_accumulator_factory () in
   Curl.set_url curl url;
   Curl.set_sslverifypeer curl config.verify;
@@ -89,6 +94,7 @@ let send_request ~client:{config; curl} {Api.Request.url; header; method_; data}
   try
     Curl.perform curl;
     let r = {Response.code = Curl.get_responsecode curl; body = !response} in
+    Log.debug "HTTP response: %d" r.code;
     Curl.reset curl;
     Lwt_result.return r
   with

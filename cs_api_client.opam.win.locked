@@ -31,10 +31,11 @@ depends: [
   "either" {= "1.0.0"}
   "fix" {= "20230505" & with-dev-setup}
   "flexdll" {= "0.43"}
-  "fmt" {= "0.9.0" & with-test}
+  "fmt" {= "0.9.0"}
   "fpath" {= "0.7.3" & with-dev-setup}
   "host-arch-x86_64" {= "1"}
   "host-system-mingw" {= "1"}
+  "logs" {= "0.7.0"}
   "lwt" {= "5.7.0"}
   "lwt_ppx" {= "2.1.0"}
   "menhir" {= "20240715" & with-dev-setup}
@@ -50,7 +51,7 @@ depends: [
   "ocaml-options-vanilla" {= "1"}
   "ocaml-syntax-shims" {= "1.0.0" & with-test}
   "ocaml-version" {= "3.6.7" & with-dev-setup}
-  "ocamlbuild" {= "0.15.0" & with-test}
+  "ocamlbuild" {= "0.15.0"}
   "ocamlfind" {= "1.9.5"}
   "ocamlformat" {= "0.25.1" & with-dev-setup}
   "ocamlformat-lib" {= "0.25.1" & with-dev-setup}
@@ -68,7 +69,7 @@ depends: [
   "stdlib-shims" {= "0.3.0"}
   "system-mingw" {= "1"}
   "terminal_size" {= "0.2.0"}
-  "topkg" {= "1.0.7" & with-test}
+  "topkg" {= "1.0.7"}
   "uucp" {= "15.1.0" & with-dev-setup}
   "uuseg" {= "15.1.0" & with-dev-setup}
   "uutf" {= "1.0.3" & with-test}

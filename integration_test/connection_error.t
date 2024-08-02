@@ -10,5 +10,5 @@ Try to upload traces from that directory:
   >     --slot-name slot-0 \
   >     --trace-name trace-0 \
   >     --trace-file trace-file \
-  > | sed 's/\(HTTP error (CURLE_COULDNT_CONNECT):\).*/\1 <redacted>/'  # Redact the platform-dependent part of the message.
-  HTTP error (CURLE_COULDNT_CONNECT): <redacted>
+  > 2>&1 | sed 's/\(HTTP error (CURLE_COULDNT_CONNECT):\).*/\1 <redacted>/'  # Redact the platform-dependent part of the message.
+  ERROR    HTTP error (CURLE_COULDNT_CONNECT): <redacted>

@@ -1,3 +1,5 @@
+module Log = Log
+
 module Graphql : sig
   val to_global_id : type_:string -> id:int -> string
   val generate_trace_upload_post : string

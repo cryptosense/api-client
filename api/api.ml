@@ -42,6 +42,11 @@ module Method = struct
     | Post
     | Put
   [@@deriving eq, ord, show]
+
+  let to_string = function
+    | Get -> "GET"
+    | Put -> "PUT"
+    | Post -> "POST"
 end
 
 module Request = struct
