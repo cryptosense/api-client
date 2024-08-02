@@ -7,6 +7,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+_There are no unreleased changes at the moment._
+
+## [2.7.0] - 2024-08-02
+
 ### Fixed
 
 - The default value of `--api-base-url` is changed to
@@ -17,7 +21,6 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fix an API server error when `--filename` is absent.
 
 ### Added
-
 
 - Add more logging. The verbosity is controlled with two new flags:
   `--quiet` and `--verbose`. The coloring is controlled with a new parameter: `--color`.
@@ -146,7 +149,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Initial release.
 
-[Unreleased]: https://github.com/cryptosense/api-client/compare/2.6.0..HEAD
+[Unreleased]: https://github.com/cryptosense/api-client/compare/2.7.0..HEAD
+[2.7.0]: https://github.com/cryptosense/api-client/compare/2.6.0...2.7.0
 [2.6.0]: https://github.com/cryptosense/api-client/compare/2.5.1...2.6.0
 [2.5.2]: https://github.com/cryptosense/api-client/compare/2.5.1...2.5.2
 [2.5.1]: https://github.com/cryptosense/api-client/compare/2.5.0...2.5.1
