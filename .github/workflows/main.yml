@@ -34,10 +34,14 @@ jobs:
       - name: Install the dependencies
         run: opam install --deps-only --with-test --locked --lock-suffix win.locked cs_api_client
       - name: Insert the version number
-        run: ./ci/subst.bash "${{ steps.build_version.outputs.value }}"
-        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        env:
+          SHELLOPTS: igncr
+        run: bash ci/subst.bash "${{ steps.build_version.outputs.value }}"
       - name: Build the executable and run the tests
         run: opam exec -- dune build @all @runtest
+      - name: Run --version
+        run: _build/install/default/bin/cs-api.exe --version
       - name: Copy the artifacts to a directory (in powershell)
         run: |
           New-Item -ItemType Directory -ErrorAction SilentlyContinue build/cs-api-${{ steps.build_version.outputs.value }}-windows
