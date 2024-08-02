@@ -41,6 +41,24 @@ module Graphql = struct
       }
     |}
 
+  let create_trace_no_name =
+    {|
+      mutation CreateTrace($projectId: ID!, $slotName: String, $key: String!, $size: BigInt!) {
+        createTrace(
+          input: {
+            projectId: $projectId,
+            defaultSlotName: $slotName,
+            key: $key,
+            size: $size
+          }
+        ) {
+          trace {
+            id
+          }
+        }
+      }
+    |}
+
   let analyze_trace =
     {|
       mutation AnalyzeTrace($traceId: ID!, $profileId: ID!) {
@@ -258,6 +276,11 @@ let build_trace_import_request
     | Some name -> `String name
     | None -> `Null
   in
+  let query =
+    match trace_name with
+    | Some _ -> Graphql.create_trace
+    | None -> Graphql.create_trace_no_name
+  in
   { Api.Request.url = endpoint ^ "/api/v2"
   ; header = [("API-KEY", key); ("Content-Type", "application/json")]
   ; method_ = Post
@@ -265,7 +288,7 @@ let build_trace_import_request
       Raw
         (Yojson.Safe.to_string
            (`Assoc
-             [ ("query", `String Graphql.create_trace)
+             [ ("query", `String query)
              ; ( "variables"
                , `Assoc
                    [ ("slotName", slot_name_var)

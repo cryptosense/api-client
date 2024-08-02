@@ -7,8 +7,11 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+### Fixed
+
 - Fix a bug which would prevent upload from working on Windows (an error would be returned
   by the client).
+- Fix an API server error when `--filename` is absent.
 
 ## [2.6.0] - 2024-07-24
 

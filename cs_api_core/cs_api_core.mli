@@ -1,7 +1,17 @@
 module Graphql : sig
   val to_global_id : type_:string -> id:int -> string
   val generate_trace_upload_post : string
+
   val create_trace : string
+  (** Mutation to register a trace (the upload of which has finished). *)
+
+  val create_trace_no_name : string
+  (** Same as [create_trace] but without a `name` parameter.
+
+      It is needed because of a bug in the GraphQL API with [`Null] values. Once this is
+      resolved, this query can be removed and the [create_trace] query will be able to use
+      a [`Null] value for its [name] parameter. *)
+
   val analyze_trace : string
   val list_profiles : string
 end
