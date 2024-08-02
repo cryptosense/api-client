@@ -11,32 +11,28 @@ The Cryptosense API Client depends on libcurl.
 ```bash
 $ export CRYPTOSENSE_API_KEY=secret
 $ ./cs-api upload-trace \
+    --verbose \
+    --trace-file test_trace.cst.gz \
     --project-id 1 \
-    --trace-name 'Test trace' \
-    --trace-file test_trace.cst.gz
-Request: POST https://analyzer.cryptosense.com/api/v1/trace_s3_post
-Request: POST https://analyzer.cryptosense.com/api/v1/trace_s3_post
-Request: POST https://analyzer.cryptosense.com/storage-traces
-[=====================================================================================] 100.00%
-Request: POST https://analyzer.cryptosense.com/api/v1/projects/1/traces
-Trace imported
+    --analyze 1
+DEBUG    HTTP request: POST https://aqtiveguard.sandboxaq.com/api/v2
+DEBUG    HTTP response: 200
+DEBUG    HTTP request: POST https://storage.googleapis.com/cs-prod-traces
+DEBUG    HTTP response: 201
+DEBUG    HTTP request: POST https://aqtiveguard.sandboxaq.com/api/v2
+DEBUG    HTTP response: 200
+INFO     Trace 1234 uploaded
+DEBUG    HTTP request: POST https://aqtiveguard.sandboxaq.com/api/v2
+DEBUG    HTTP response: 200
+INFO     Report 'Report 1234' of ID 1234 is being generated
 ```
 
-For more information about the CLI parameters, run: `cs-api --help`.
+### Documentation
+
+- [Online documentation][public_docs]
+- For CLI usage, use `cs-api --help`.
 
 ### FAQ
-
-#### How to find the ID of my project?
-
-In the web interface, select your project by clicking it and copy the number after
-`/projects/` in the URL.
-
-#### How to upload to a local instance of Cryptosense Analyzer?
-
-Use the `--api-base-url` parameter to point the CLI at your local instance.
-
-If you are using self-signed certificates or a custom CA, you can provide a custom CA file
-with the `--ca-file path/to/cabundle.pem` option.
 
 #### HTTP Proxies
 
@@ -156,3 +152,4 @@ slot_name = "cs-api-test"
 [github_actions]: https://github.com/cryptosense/api-client/actions
 [github_actions_main]: https://github.com/cryptosense/api-client/actions?query=branch%3Amain
 [github_status_badge]: https://github.com/cryptosense/api-client/actions/workflows/main.yml/badge.svg?branch=main
+[public_docs]: https://aqtiveguard.sandboxaq.com/docs/api/api-client/

@@ -251,7 +251,7 @@ let api_endpoint =
   let doc = "Base URL of the API server." in
   Cmdliner.Arg.(
     value
-    & opt string "https://analyzer.cryptosense.com"
+    & opt string "https://aqtiveguard.sandboxaq.com"
     & info ["u"; "api-base-url"] ~docv:"BASE_URL" ~doc)
 
 let api_key =

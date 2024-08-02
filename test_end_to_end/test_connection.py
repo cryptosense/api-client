@@ -110,3 +110,37 @@ def test_custom_ca(executable: str, server: Server, tmp_path: Path) -> None:
             INFO     Trace <trace_id> uploaded
         """,
     )
+
+
+def test_default_url(executable: str, server: Server, tmp_path: Path) -> None:
+    if not server.is_default_url:
+        pytest.skip("Server is not the default URL of the client (our SaaS version)")
+
+    trace_file = tmp_path / "trace.cst.gz"
+
+    with util.open_java_trace() as f:
+        trace_file.write_bytes(f.read())
+
+    result = subprocess.run(
+        util.cmd_upload_trace(
+            executable,
+            project_id=str(server.project_id),
+            slot_name=server.slot_name,
+            trace_file=str(trace_file),
+            trace_name=f"trace-{secrets.token_hex(8)}",
+            ca_file=server.ca_path,
+        ),
+        env=dict(os.environ, CRYPTOSENSE_API_KEY=server.api_key),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    assert util.Result.from_subprocess(result).replace(
+        regex=r"Trace \d+ uploaded", text="Trace <trace_id> uploaded"
+    ) == util.Result.clean(
+        code=0,
+        stdout="",
+        stderr="""
+            INFO     Trace <trace_id> uploaded
+        """,
+    )
