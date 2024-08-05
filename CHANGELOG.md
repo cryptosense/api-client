@@ -14,7 +14,7 @@ _There are no unreleased changes at the moment._
 ### Fixed
 
 - The default value of `--api-base-url` is changed to
-  `https://aqtiveguard.cryptosense.com`. The former value caused the client to exit early
+  `https://aqtiveguard.sandboxaq.com`. The former value caused the client to exit early
   with an HTTP 308 response code (permanent redirect).
 - Fix a bug which would prevent upload from working on Windows (an error would be returned
   by the client).
