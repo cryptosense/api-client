@@ -7,7 +7,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
-_There are no unreleased changes at the moment._
+### Added
+
+- The Windows release now ships with `libcurl-4.dll` (from https://curl.se/windows/).
 
 ## [2.7.0] - 2024-08-02
 

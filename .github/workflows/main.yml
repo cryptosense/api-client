@@ -46,6 +46,18 @@ jobs:
         run: |
           New-Item -ItemType Directory -ErrorAction SilentlyContinue build/cs-api-${{ steps.build_version.outputs.value }}-windows
           Copy-Item _build/install/default/bin/cs-api.exe build/cs-api-${{ steps.build_version.outputs.value }}-windows/
+      - name: Download and bundle libcurl
+        shell: bash
+        env:
+          SHELLOPTS: igncr
+        run: |
+          bash ci/static-dl \
+            --url https://curl.se/windows/dl-8.9.1_1/curl-8.9.1_1-win64-mingw.zip \
+            --hash f7bc9e21490d942c937dfe7bfcb9a2e29a490665c8b51e8ea0cdc171ac08c5de \
+            --out /tmp/curl.zip
+          mkdir /tmp/curl
+          unzip -q /tmp/curl.zip -d /tmp/curl
+          cp /tmp/curl/*/bin/libcurl-x64.dll build/cs-api-${{ steps.build_version.outputs.value }}-windows/libcurl-4.dll
       - name: Upload the compiled binary
         uses: actions/upload-artifact@v4
         with:
