@@ -3,7 +3,7 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-# Download a file with `wget` and check its SHA-256 hash.
+# Download a file with `curl` or `wget` and check its SHA-256 hash.
 #
 # To download with a hash check:
 #
@@ -24,9 +24,22 @@ show_hash_and_fail() {
     local url=$1; shift
     local file=$1; shift
 
-    local hash=$(sha256sum "$file" | cut -f 1 -d " ")
+    local hash
+    hash=$(sha256sum "$file" | cut -f 1 -d " ")
     echo "Actual hash for $url: $hash" >&2
     return 1
+}
+
+download() {
+    local url=$1; shift
+    local out=$1; shift
+
+    # If curl is found, use it, otherwise use wget.
+    if command -v curl > /dev/null; then
+        curl --location --output "$out" "$url"
+    else
+        wget --output-document "$out" "$url"
+    fi
 }
 
 main() {
@@ -34,10 +47,11 @@ main() {
     local hash_=$1; shift
     local out=$1; shift
 
-    local tmp_dir=$(mktemp --directory)
+    local tmp_dir
+    tmp_dir=$(mktemp --directory)
     local tmp_file="$tmp_dir/downloaded"
 
-    wget -nv -O "$tmp_file" "$url"
+    download "$url" "$tmp_file"
     echo "$hash_ $tmp_file" | sha256sum --check --strict \
         || show_hash_and_fail "$url" "$tmp_file"
 

@@ -28,7 +28,7 @@ RUN apt-get update \
 USER "$user"
 
 # Add script for downloading files
-COPY --chown="$user:$user" docker/static-dl /usr/local/bin/static-dl
+COPY --chown="$user:$user" ci/static-dl /usr/local/bin/static-dl
 RUN chmod +x /usr/local/bin/static-dl
 
 RUN mkdir "/home/$user/workdir"
