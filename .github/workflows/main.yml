@@ -82,7 +82,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           build-args: |
-            OPAM_BASE=opam-centos-7
+            CENTOS_BASE=centos:7
+            OPAM_BASE=opam-centos-based
             OCAML_VERSION=4.14.2
             VERSION=${{ steps.build_version.outputs.value }}
           target: main
