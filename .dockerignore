@@ -1,5 +1,7 @@
 **/*.pyc
 **/.merlin
+**/.mypy_cache
+**/.venv
 **/__pycache__
 **/_build
 **/_opam

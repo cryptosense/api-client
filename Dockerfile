@@ -1,9 +1,12 @@
 # Base image for Debian-based distributions (e.g. `debian:10` or `ubuntu:18.04`)
 ARG DEBIAN_BASE=ubuntu:18.04
 
+# Base image for CentOS-based distributions (e.g. `centos:7` or `centos:8`)
+ARG CENTOS_BASE=centos:7
+
 # Intermediate image to use as Opam-enabled distribution (e.g. `opam-alpine` or
 # `opam-debian-based`).
-ARG OPAM_BASE=opam-centos-7
+ARG OPAM_BASE=opam-centos-based
 
 FROM debian:12-slim AS downloader
 
@@ -78,13 +81,15 @@ RUN opam init --yes --compiler "$OCAML_VERSION" --disable-sandboxing
 RUN mkdir "/home/$user/workdir"
 WORKDIR "/home/$user/workdir"
 
-FROM centos:7 AS opam-centos-7
+FROM $CENTOS_BASE AS opam-centos-based
 
 # Fix repository URLs (because CentOS 7 is deprecated)
-RUN (. /etc/os-release && [ "$ID" = "centos" ] && [ "$VERSION_ID" = "7" ]) \
-    && sed -i 's/mirror.centos.org/vault.centos.org/g' /etc/yum.repos.d/*.repo \
-    && sed -i 's/^#.*baseurl=http/baseurl=http/g' /etc/yum.repos.d/*.repo \
-    && sed -i 's/^mirrorlist=http/#mirrorlist=http/g' /etc/yum.repos.d/*.repo
+RUN . /etc/os-release \
+    && if [ "$ID" = "centos" ] && ([ "$VERSION_ID" = "7" ] || [ "$VERSION_ID" = "8" ]); then \
+        sed -i 's/mirror.centos.org/vault.centos.org/g' /etc/yum.repos.d/*.repo; \
+        sed -i 's/^#.*baseurl=http/baseurl=http/g' /etc/yum.repos.d/*.repo; \
+        sed -i 's/^mirrorlist=http/#mirrorlist=http/g' /etc/yum.repos.d/*.repo; \
+    fi
 
 # Add user with password-less sudo
 ARG user=main
@@ -101,10 +106,12 @@ USER "$user"
 USER root
 RUN yum install -y \
         bzip2 \
+        diffutils \
         gcc \
         git \
         make \
         patch \
+        rsync \
         unzip \
         wget \
     && yum clean all \
