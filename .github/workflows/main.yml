@@ -58,6 +58,7 @@ jobs:
           mkdir /tmp/curl
           unzip -q /tmp/curl.zip -d /tmp/curl
           cp /tmp/curl/*/bin/libcurl-x64.dll build/cs-api-${{ steps.build_version.outputs.value }}-windows/libcurl-4.dll
+          cp /tmp/curl/*/bin/curl-ca-bundle.crt build/cs-api-${{ steps.build_version.outputs.value }}-windows/curl-ca-bundle.crt
       - name: Upload the compiled binary
         uses: actions/upload-artifact@v4
         with:
