@@ -7,9 +7,14 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+_There are no unreleased changes at the moment._
+
+## [2.7.1] - 2024-08-21
+
 ### Added
 
-- The Windows release now ships with `libcurl-4.dll` (from https://curl.se/windows/).
+- The Windows release now ships with `libcurl-4.dll` (from https://curl.se/windows/) and a
+  CA certificates bundle.
 
 ## [2.7.0] - 2024-08-02
 
@@ -151,7 +156,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Initial release.
 
-[Unreleased]: https://github.com/cryptosense/api-client/compare/2.7.0..HEAD
+[Unreleased]: https://github.com/cryptosense/api-client/compare/2.7.1..HEAD
+[2.7.1]: https://github.com/cryptosense/api-client/compare/2.7.0...2.7.1
 [2.7.0]: https://github.com/cryptosense/api-client/compare/2.6.0...2.7.0
 [2.6.0]: https://github.com/cryptosense/api-client/compare/2.5.1...2.6.0
 [2.5.2]: https://github.com/cryptosense/api-client/compare/2.5.1...2.5.2
