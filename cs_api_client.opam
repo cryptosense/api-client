@@ -17,8 +17,9 @@ depends: [
   "cmdliner" {>= "1.2.0"}
   "containers" {>= "3.6"}
   "dune" {>= "2.7.0"}
+  "fmt" {>= "0.11.0"}
   "logs" {>= "0.7.0"}
-  "lwt"
+  "lwt" {< "5.9.0"}  # For compilation on CentOS 7
   "lwt_ppx"
   "ocaml" {>= "4.14.0"}
   "ocamlformat" {= "0.25.1" & with-dev-setup}
