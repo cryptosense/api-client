@@ -376,20 +376,21 @@ module Common = struct
       in
       let color = Cmdliner.Arg.info ["color"] ~docs ~doc in
       let parser = function
-        | "auto" -> `Ok Color.Auto
-        | "always" -> `Ok Color.Always
-        | "never" -> `Ok Color.Never
+        | "auto" -> Ok Color.Auto
+        | "always" -> Ok Color.Always
+        | "never" -> Ok Color.Never
         | _ as s ->
-          `Error
-            (Printf.sprintf
-               "Invalid color: %s. Expected: 'auto', 'always' or 'never'." s)
+          Error
+            (`Msg
+              (Printf.sprintf
+                 "Invalid color: %s. Expected: 'auto', 'always' or 'never'." s))
       in
       let printer fmt = function
         | Color.Auto -> Fmt.string fmt "auto"
         | Color.Always -> Fmt.string fmt "always"
         | Color.Never -> Fmt.string fmt "never"
       in
-      Cmdliner.Arg.(value & opt (parser, printer) Color.Auto color)
+      Cmdliner.Arg.(value & opt (conv (parser, printer)) Color.Auto color)
     in
     let verbosity =
       let doc =

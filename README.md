@@ -125,6 +125,7 @@ ca_path = "/path/to/self-signed-cert.pem"
 profile_id = 1
 project_id = 3
 slot_name = "cs-api-test"
+is_default_url = false
 ```
 
 ## Updating dependencies
